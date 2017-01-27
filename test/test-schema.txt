@@ -1,0 +1,3 @@
+--- types ---
+Account account -> id: int, username: string, email: string;
+Void void;
