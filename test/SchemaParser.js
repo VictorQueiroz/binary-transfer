@@ -33,4 +33,16 @@ describe('SchemaParser', function() {
             constructor: 'void'
         }]);
     });
+
+    it('should parse namespaced constructors', function() {
+        assert.deepEqual(schemaParser.parse('user.User user.UserRegular -> id: int;'), [{
+            id: 4018592141,
+            type: 'user.User',
+            params: [{
+                type: 'int',
+                name: 'id'
+            }],
+            constructor: 'user.UserRegular'
+        }]);
+    });
 });
