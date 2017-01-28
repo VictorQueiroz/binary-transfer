@@ -19,4 +19,4 @@ class TypeStore {
     }
 }
 
-export default new TypeStore();
+module.exports = new TypeStore();
