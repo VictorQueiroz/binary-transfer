@@ -15,7 +15,7 @@ class TypeStore {
     }
 
     register(id, Type) {
-        this.storeById[id] = this.storeByName[Type.name] = Type;
+        this.storeById[id] = this.storeByName[Type._name] = Type;
     }
 }
 
