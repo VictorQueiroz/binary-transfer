@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const babel = require('babel-core');
 const mkdirp = require('mkdirp');
 const nunjucks = require('nunjucks');
 const { SchemaParser, SchemaBuilder } = require('./lib');
@@ -13,10 +14,11 @@ const builder = new SchemaBuilder({
         }
     }],
     binaryTransferPath: function(dirname) {
-        return path.resolve(dirname, '../src');
+        return path.resolve(dirname, '../lib');
     }
 });
 
+const babelRc = JSON.parse(fs.readFileSync(path.resolve(__dirname, '.babelrc')));
 const templates = builder.build();
 
 templates.forEach(function(file) {
@@ -27,5 +29,11 @@ templates.forEach(function(file) {
     const contents = nunjucks.renderString(file.template.toString('utf8'), file.data);
 
     mkdirp.sync(folder);
-    fs.writeFileSync(path.resolve(folder, path.basename(file.filePath)), contents);
+    writeFileSync(path.resolve(folder, path.basename(file.filePath)), contents);
 });
+
+function writeFileSync(path, contents) {
+    contents = babel.transform(contents.toString('utf8'), babelRc);
+
+    fs.writeFileSync(path, contents.code);
+}
