@@ -11,7 +11,7 @@ class SchemaParser {
             return this.parse(schema.toString('utf8'));
         }
 
-        schema = schema.split(/\n/).filter(s => s).filter(s => s.substring(0, 3) != '---');
+        schema = schema.trim().split(/\n/).filter(s => s).filter(s => s.substring(0, 3) != '---');
         schema = schema.map(s => {
             return s.trim();
         });
