@@ -1,9 +1,14 @@
+import { createMessage } from './utils';
 import { escape, isUndefined } from 'lodash';
 
 class Deserializer {
     constructor(buffer, offset = 0) {
         this.buffer = buffer;
         this.offset = offset;
+    }
+
+    onError(...args) {
+        throw new Error(createMessage.apply(null, args));
     }
 
     readInt() {
