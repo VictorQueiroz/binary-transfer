@@ -11,6 +11,7 @@ ctorHeaderBytes.writeUInt32LE({{id}}, 0);
 class {{constructorName}} extends {{typeFileData.data.constructorName}} {
     constructor() {
         super({
+            _id: {{id}},
             _name: ctorName,
             _header: ctorHeaderBytes
         });
