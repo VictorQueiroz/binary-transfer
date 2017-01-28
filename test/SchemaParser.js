@@ -12,7 +12,11 @@ describe('SchemaParser', function() {
     });
 
     it('should parse schema constructors', function() {
-        assert.deepEqual(schemaParser.parse(testSchema), [{
+        assert.deepEqual(schemaParser.parse(`
+            --- types ---
+            Account account -> id: int, username: string, email: string;
+            Void void;
+        `), [{
             id: 3133324573,
             type: 'Account',
             params: [{
@@ -35,14 +39,14 @@ describe('SchemaParser', function() {
     });
 
     it('should parse namespaced constructors', function() {
-        assert.deepEqual(schemaParser.parse('user.User user.UserRegular -> id: int;'), [{
-            id: 4018592141,
+        assert.deepEqual(schemaParser.parse('user.User user.userRegular -> id: int;'), [{
+            id: 1729710926,
             type: 'user.User',
             params: [{
                 type: 'int',
                 name: 'id'
             }],
-            constructor: 'user.UserRegular'
+            constructor: 'user.userRegular'
         }]);
     });
 });
