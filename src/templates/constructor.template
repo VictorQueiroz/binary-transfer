@@ -1,3 +1,4 @@
+import vector from '{{rootPath}}/vector.js';
 import TypeStore from '{{typeStorePath}}';
 import {Deserializer, Serializer} from '{{binaryTransferPath}}';
 import {{typeFileData.data.constructorName}} from '{{typeFileData.filePath}}';
@@ -39,6 +40,10 @@ class {{constructorName}} extends {{typeFileData.data.constructorName}} {
             {% if param.generic %}
                 result['{{param.key}}'] = deserializer.read{{param.method}}();
             {% elseif param.vector %}
+                result['{{param.key}}'] = vector.decode({
+                    type: '{{param.type}}',
+                    deserializer
+                });
             {% elseif param.constructorReference or param.typeReference %}
                 let Type;
                 {% if param.constructorReference %}

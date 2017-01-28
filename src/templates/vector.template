@@ -1,0 +1,101 @@
+import TypeStore from './TypeStore';
+import { Deserializer, Serializer } from '{{binaryTransferPath}}';
+
+const ctorHeaderBytes = Buffer.alloc(4);
+ctorHeaderBytes.writeUInt32LE(460212315, 0);
+
+class Vector {
+    constructor() {
+        this._id = ctorHeaderBytes.readUInt32LE(0);
+        this._name = 'vector';
+    }
+
+    encode(options) {
+        const serializer = new Serializer();
+
+        // write vector header
+        serializer.addBuffer(ctorHeaderBytes);
+
+        const length = options.items.length;
+
+        serializer.writeInt(length);
+
+        for(let i = 0; i < length; i++) {
+            switch(options.type) {
+                {% for type, method in generics %}
+                case '{{type}}':
+                    serializer.write{{method}}(options.items[i]);
+                    break;
+                {% endfor %}
+                default:
+                    serializer.addBuffer(options.items[i]);
+            }
+        }
+
+        return serializer.getBuffer();
+    }
+
+    isConstructorReference(name){
+        const i = name.indexOf('.');
+        if(i > -1) {
+            return this.isConstructorReference(name.substring(i + 1));
+        }
+
+        return name && name[0] == name[0].toLowerCase();
+    }
+
+    isTypeReference(name){
+        const i =name.indexOf('.');
+
+        if(i > -1) {
+            return this.isTypeReference(name.substring(i + 1));
+        }
+
+        return name && name[0] == name[0].toUpperCase();
+    }
+
+    decode(options) {
+        const deserializer = options.hasOwnProperty('deserializer') ? options.deserializer : new Deserializer(options.buffer);
+        const header = deserializer._readBytes(4);
+
+        if(!header.equals(ctorHeaderBytes)) {
+            throw new Error('Expected ' + ctorHeaderBytes.readUInt32LE(0) + ' but got ' + header.readUInt32LE(0));
+        }
+
+        const length = deserializer.readInt();
+        const array = new Array(length);
+
+        switch(options.type) {
+        {% for type, method in generics %}
+            case '{{type}}':
+                for(let i = 0; i < length; i++) {
+                    array[i] = deserializer.read{{method}}();
+                }
+                break;
+        {% endfor %}
+            default:
+                let Type;
+
+                if(this.isConstructorReference(options.type)) {
+                    Type = TypeStore.findTypeFromName(options.type);
+                } else if(this.isTypeReference(options.type)) {
+                    // get first constructor header
+                    Type = TypeStore.findTypeFromBuffer(deserializer.buffer.slice(deserializer.offset));
+                } else {
+                    throw new Error('Invalid type name: ' + options.type);
+                }
+
+                if(!Type) {
+                    throw new Error('Cannot find constructor for type: ' + options.type);
+                }
+
+                for(let i = 0; i < length; i++) {
+                    array[i] = Type.deserialize(deserializer);
+                }
+        }
+
+        return array;
+    }
+}
+
+module.exports = new Vector();

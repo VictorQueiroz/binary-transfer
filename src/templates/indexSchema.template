@@ -1,3 +1,5 @@
 {% for schema in schemas %}
 exports['{{schema}}'] = require('./{{schema}}');
 {% endfor %}
+
+exports.vector = require('./vector');

@@ -5,3 +5,5 @@ Void void;
 Post post -> id: int, author: Account, body: string;
 
 players.Player players.player -> id: int;
+
+players.PlayersList players.playersList -> players: Vector<players.Player>;

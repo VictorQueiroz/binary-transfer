@@ -89,7 +89,8 @@ class SchemaBuilder {
         return params.map(param => {
             if(this.isVectorType(param.type)) {
                 return {
-                    type: param.type.slice(6, param.type.length - 1),
+                    key: param.name,
+                    type: param.type.substring(7, param.type.length - 1),
                     vector: true
                 };
             }
@@ -120,14 +121,20 @@ class SchemaBuilder {
         });
     }
 
+    getBinaryTransferPath() {
+        return (
+            isFunction(this.binaryTransferPath) ?
+            this.binaryTransferPath(__dirname) :
+            this.binaryTransferPath
+        );
+    }
+
     createConstructor({ ctor, constructors }) {
         const typeFile = this.createTypeFile(ctor.type, constructors);
         const fullPath = ctor.constructor.split('.');
         const ctorName = fullPath[fullPath.length - 1];
         const constructorName = this.getConstructorName(ctorName);
-        const binaryTransferPath = isFunction(this.binaryTransferPath) ?
-                                    this.binaryTransferPath(__dirname) :
-                                    this.binaryTransferPath;
+        const binaryTransferPath = this.getBinaryTransferPath();
 
 
         const prefixedName = ctor.constructor.split('.');
@@ -136,6 +143,8 @@ class SchemaBuilder {
         namespacedName.splice(namespacedName.length - 1, 1, constructorName);
 
         fullPath.splice(1, 0, 'constructors');
+
+        const rootPath = fullPath.map(_ => '..');
         const file = {
             filePath: path.join(...fullPath, constructorName + '.js'),
             template: fs.readFileSync(path.resolve(__dirname, 'templates/constructor.template')),
@@ -143,12 +152,13 @@ class SchemaBuilder {
                 id: ctor.id,
                 ctor: namespacedName.join('.'),
                 params: this.createParams(ctor.params),
+                rootPath: rootPath.join('/'),
                 prefixedCtor: prefixedName.join('.'),
                 typeFileData: {
                     ...typeFile,
-                    filePath: path.join(...fullPath.map(_ => '..'), typeFile.filePath),
+                    filePath: path.join(...rootPath, typeFile.filePath),
                 },
-                typeStorePath: path.join(...fullPath.map(_ => '../')) + '/TypeStore.js',
+                typeStorePath: path.join(...rootPath) + '/TypeStore.js',
                 constructorName: constructorName,
                 binaryTransferPath: binaryTransferPath
             }
@@ -216,6 +226,15 @@ class SchemaBuilder {
             template: fs.readFileSync(path.resolve(__dirname, 'templates/indexSchema.template')),
             data: {
                 schemas: this.schemas.map(schema => schema.prefix)
+            }
+        });
+
+        this.files.push({
+            filePath: './vector.js',
+            template: fs.readFileSync(path.resolve(__dirname, 'templates/vector.template')),
+            data: {
+                generics: this.generics,
+                binaryTransferPath: this.getBinaryTransferPath()
             }
         });
 
