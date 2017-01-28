@@ -1,0 +1,78 @@
+import TypeStore from '{{typeStorePath}}';
+import {Deserializer, Serializer} from '{{binaryTransferPath}}';
+import {{typeFileData.data.constructorName}} from '{{typeFileData.filePath}}';
+
+const ctorName = '{{prefixedCtor}}';
+const ctorHeaderBytes = Buffer.alloc(4);
+
+// write int32
+ctorHeaderBytes.writeUInt32LE({{id}}, 0);
+
+class {{constructorName}} extends {{typeFileData.data.constructorName}} {
+    constructor() {
+        super({
+            _name: ctorName,
+            _header: ctorHeaderBytes
+        });
+    }
+
+    deserialize(deserializer) {
+        return this.decode(undefined, deserializer);
+    }
+
+    decode(bytes, parentDeserializer) {
+        const result = {
+            _: ctorName
+        };
+        const deserializer = parentDeserializer ? parentDeserializer : new Deserializer(bytes);
+
+        const header = deserializer._readBytes(4);
+
+        if(!header.equals(ctorHeaderBytes)) {
+            this.onError('Invalid header. Expected for %s but got %s instead', ctorHeaderBytes.readInt32LE(0), header.readInt32LE(0));
+            return false;
+        }
+
+        {% for param in params %}
+            (() => {
+            {% if param.generic %}
+                result['{{param.key}}'] = deserializer.read{{param.method}}();
+            {% elseif param.vector %}
+            {% elseif param.constructorReference or param.typeReference %}
+                let Type;
+                {% if param.constructorReference %}
+                    Type = TypeStore.findTypeFromName('{{param.type}}');
+                {% else %}
+                    Type = TypeStore.findTypeFromBuffer(deserializer.buffer.slice(deserializer.offset));
+                {% endif %}
+                result['{{param.key}}'] = Type.deserialize(deserializer);
+            {% endif %}
+            })();
+        {% endfor %}
+
+        return result;
+    }
+
+    encode(object) {
+        const serializer = new Serializer();
+
+        // write header
+        serializer.addBuffer(ctorHeaderBytes);
+
+        {% for param in params %}
+            {% if param.generic %}
+                serializer.write{{param.method}}(object['{{param.key}}']);
+            {% else %}
+                serializer.addBuffer(object['{{param.key}}']);
+            {% endif %}
+        {% endfor %}
+
+        return serializer.getBuffer();
+    }
+}
+
+const ctorInstance = new {{constructorName}}();
+
+TypeStore.register({{id}}, ctorInstance);
+
+module.exports = ctorInstance;

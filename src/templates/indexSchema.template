@@ -1,0 +1,3 @@
+{% for schema in schemas %}
+exports['{{schema}}'] = require('./{{schema}}');
+{% endfor %}

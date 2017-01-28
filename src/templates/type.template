@@ -1,0 +1,8 @@
+class {{constructorName}} {
+    constructor(options) {
+        this._name = options._name;
+        this._header = options._header;
+    }
+}
+
+module.exports = {{constructorName}};

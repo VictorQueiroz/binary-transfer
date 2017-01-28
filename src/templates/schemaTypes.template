@@ -1,0 +1,5 @@
+import { set } from 'lodash';
+
+{% for type in types %}
+set(exports, '{{type.ctor}}', require('{{type.filePath}}'));
+{% endfor %}
