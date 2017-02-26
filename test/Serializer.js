@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import Long from 'long';
 import crypto from 'crypto';
 import assert from 'assert';
@@ -55,18 +56,51 @@ describe('Serializer', function() {
             assert.equal('0xffffffffffffff85', deserializer.readLong());
         });
 
-        it('should encode max long unsigned value', function() {
-            serializer.writeLong(Long.MAX_UNSIGNED_VALUE);
+        const longs = [{
+            number: 9223372036854776000,
+            long: Long.MAX_VALUE
+        }];
 
-            deserializer = new Deserializer(serializer.getBuffer());
-            assert.equal('0xffffffffffffffff', deserializer.readLong());
+        _.forEach(longs, function({ number, long }) {
+            it(`should encode "${number}" number`, function() {
+                serializer.writeLong(number);
+
+                deserializer = new Deserializer(serializer.getBuffer());
+                const hex = deserializer.readLong();
+
+                assert(Long.fromString(hex, false, 16).equals(long));
+            });
         });
 
-        it('should encode max long signed value', function() {
-            serializer.writeLong(Long.MAX_VALUE);
+        it('should encode hex into long', function() {
+            serializer.writeLong('0xff');
 
             deserializer = new Deserializer(serializer.getBuffer());
-            assert.equal('0x7fffffffffffffff', deserializer.readLong());
+            assert.equal(deserializer.readLong(), '0x00000000000000ff');
+        });
+    });
+
+    describe('writeULong()', function() {
+        it('should write unsigned 64-bit long', function() {
+            serializer.writeULong(Long.MAX_UNSIGNED_VALUE);
+
+            deserializer = new Deserializer(serializer.getBuffer());
+            assert.equal(deserializer.readULong(), '0x' + Long.MAX_UNSIGNED_VALUE.toString(16));
+        });
+    });
+
+    describe('writeUInt()', function() {
+        it('should write unsigned 32-bit integer', function() {
+            serializer.writeUInt(0xFFFFFFFF);
+
+            deserializer = new Deserializer(serializer.getBuffer());
+            assert.equal(deserializer.readUInt(), 0xFFFFFFFF);
+        });
+
+        it('should throw when try to encode signed integer', function() {
+            assert.throws(function() {
+                serializer.writeUInt(-0xFFFFFFFF);
+            });
         });
     });
 
@@ -101,6 +135,34 @@ describe('Serializer', function() {
 
             deserializer = new Deserializer(serializer.getBuffer());
             assert.equal('message: 🎱', deserializer.readString());
+        });
+
+        it('should encode 2048 length string', function() {
+            const string = crypto.randomBytes(1024).toString('hex');
+
+            serializer.writeString(string);
+            deserializer = new Deserializer(serializer.getBuffer());
+            assert.equal(deserializer.readString(), string);
+        });
+    });
+
+    describe('writeFloat()', function() {
+        it('should encode 32-bit integer into float', function() {
+            serializer.writeFloat(2.387939260590663e-38);
+
+            deserializer = new Deserializer(serializer.getBuffer());
+
+            assert.equal(deserializer.readFloat(), 2.387939260590663e-38);
+        });
+    });
+
+    describe('writeDouble()', function() {
+        it('should encode double integer', function() {
+            serializer.writeDouble(-38.5824766);
+
+            deserializer = new Deserializer(serializer.getBuffer());
+
+            assert.equal(deserializer.readDouble(), -38.5824766);
         });
     });
 });
