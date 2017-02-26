@@ -13,6 +13,8 @@ class SchemaBuilder {
         this.generics = {
             int: 'Int',
             long: 'Long',
+            uint: 'UInt',
+            ulong: 'ULong',
             float: 'Float',
             bytes: 'Bytes',
             string: 'String',

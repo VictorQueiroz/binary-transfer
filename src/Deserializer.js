@@ -1,3 +1,4 @@
+import Long from 'long';
 import { createMessage } from './utils';
 import { escape, isUndefined } from 'lodash';
 
@@ -11,11 +12,28 @@ class Deserializer {
         throw new Error(createMessage.apply(null, args));
     }
 
-    readInt() {
-        const int32 = this.buffer.readInt32LE(this.offset);
-        this.offset += 4;
+    readUInt() {
+        const bytes = this._readBytes(4);
 
-        return int32;
+        return bytes.readUInt32LE(0);
+    }
+
+    readInt() {
+        const bytes = this._readBytes(4);
+
+        return bytes.readInt32LE(0);
+    }
+
+    readFloat() {
+        const bytes = this._readBytes(4);
+
+        return bytes.readFloatLE(0);
+    }
+
+    readDouble() {
+        const bytes = this._readBytes(8);
+
+        return bytes.readDoubleLE(0);
     }
 
     readString() {
@@ -51,10 +69,9 @@ class Deserializer {
     }
 
     readBytes() {
-        const length = this.buffer.readUInt32LE(this.offset);
-        this.offset += 4;
-
+        const length = this.readUInt();
         const bytes = this._readBytes(length);
+
         this.offset += length % 4;
 
         return bytes;
@@ -63,7 +80,21 @@ class Deserializer {
     readLong() {
         const bytes = this._readBytes(8);
 
-        return '0x' + bytes.reverse().toString('hex');
+        const low = bytes.readInt32LE(0);
+        const high = bytes.readInt32LE(4);
+
+        const long = new Long(low, high, false);
+        return '0x' + Buffer.from(long.toBytesBE()).toString('hex');
+    }
+
+    readULong() {
+        const bytes = this._readBytes(8);
+
+        const low = bytes.readUInt32LE(0);
+        const high = bytes.readUInt32LE(4);
+
+        const long = new Long(low, high, true);
+        return '0x' + Buffer.from(long.toBytesBE()).toString('hex');
     }
 }
 
