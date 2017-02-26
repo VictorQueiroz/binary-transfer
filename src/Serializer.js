@@ -9,7 +9,7 @@ class Serializer {
     }
 
     writeInt(int) {
-        const buffer = Buffer.alloc(4);
+        const buffer = Buffer.allocUnsafe(4);
         buffer.writeInt32LE(int, 0);
 
         this.addBuffer(buffer);
@@ -37,7 +37,7 @@ class Serializer {
 
     writeString(string) {
         const sUTF8 = unescape(encodeURIComponent(string));
-        const bytes = Buffer.alloc(sUTF8.length);
+        const bytes = Buffer.allocUnsafe(sUTF8.length);
 
         for(let i = 0; i < sUTF8.length; i++) {
             bytes.writeUInt8(sUTF8.codePointAt(i), i);
