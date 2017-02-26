@@ -1,9 +1,11 @@
+require('babel-register');
+
 const fs = require('fs');
 const path = require('path');
 const babel = require('babel-core');
 const mkdirp = require('mkdirp');
 const nunjucks = require('nunjucks');
-const { SchemaParser, SchemaBuilder } = require('./lib');
+const { SchemaParser, SchemaBuilder } = require('./src');
 
 const schema = new SchemaParser().parse(fs.readFileSync('./test/test-schema.txt'));
 const builder = new SchemaBuilder({
@@ -13,9 +15,7 @@ const builder = new SchemaBuilder({
             predicates: schema
         }
     }],
-    binaryTransferPath: function(dirname) {
-        return path.resolve(dirname, '../lib');
-    }
+    binaryTransferPath: path.resolve(__dirname, 'src')
 });
 
 const babelRc = JSON.parse(fs.readFileSync(path.resolve(__dirname, '.babelrc')));
