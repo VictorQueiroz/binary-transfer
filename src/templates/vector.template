@@ -1,16 +1,41 @@
-import TypeStore from './TypeStore';
+import _ from 'lodash';
+import ConstructorStore from './ConstructorStore';
 import { Deserializer, Serializer } from '{{binaryTransferPath}}';
 
 const ctorHeaderBytes = Buffer.alloc(4);
 ctorHeaderBytes.writeUInt32LE(460212315, 0);
 
 class Vector {
-    constructor() {
+    static _id = ctorHeaderBytes.readUInt32LE(0);
+    static _name = 'vector';
+
+    constructor(options) {
         this._id = ctorHeaderBytes.readUInt32LE(0);
         this._name = 'vector';
+        this.type = options.type;
+        this.items = options.items;
     }
 
-    encode(options) {
+    {% for method in nativeArrayMethods %}
+    {{method}}(...args) {
+        return Array.prototype['{{method}}'].call(this.items, ...args);
+    }
+    {% endfor %}
+
+    {% for method in lodashMethods %}
+    {{method}}(...args) {
+        return _['{{method}}'](this.items, ...args);
+    }
+    {% endfor %}
+
+    serialize() {
+        return Vector.encode({
+            type: this.type,
+            items: this.items
+        });
+    }
+
+    static encode(options) {
         const serializer = new Serializer();
 
         // write vector header
@@ -18,7 +43,7 @@ class Vector {
 
         const length = options.items.length;
 
-        serializer.writeInt(length);
+        serializer.writeUInt(length);
 
         for(let i = 0; i < length; i++) {
             switch(options.type) {
@@ -35,34 +60,38 @@ class Vector {
         return serializer.getBuffer();
     }
 
-    isConstructorReference(name){
+    static skipDots(name) {
         const i = name.indexOf('.');
+
         if(i > -1) {
-            return this.isConstructorReference(name.substring(i + 1));
+            return this.skipDots(name.substring(i + 1));
         }
+
+        return name;
+    }
+
+    static isConstructorReference(name){
+        name = this.skipDots(name);
 
         return name && name[0] == name[0].toLowerCase();
     }
 
-    isTypeReference(name){
-        const i =name.indexOf('.');
-
-        if(i > -1) {
-            return this.isTypeReference(name.substring(i + 1));
-        }
+    static isTypeReference(name){
+        name = this.skipDots(name);
 
         return name && name[0] == name[0].toUpperCase();
     }
 
-    decode(options) {
+    static decode(options) {
         const deserializer = options.hasOwnProperty('deserializer') ? options.deserializer : new Deserializer(options.buffer);
         const header = deserializer._readBytes(4);
 
         if(!header.equals(ctorHeaderBytes)) {
-            throw new Error('Expected ' + ctorHeaderBytes.readUInt32LE(0) + ' but got ' + header.readUInt32LE(0));
+            this.onError('Expected ' + ctorHeaderBytes.readUInt32LE(0) + ' but got ' + header.readUInt32LE(0));
+            return false;
         }
 
-        const length = deserializer.readInt();
+        const length = deserializer.readUInt();
         const array = new Array(length);
 
         switch(options.type) {
@@ -74,28 +103,33 @@ class Vector {
                 break;
         {% endfor %}
             default:
-                let Type;
+                let Constructor;
 
-                if(this.isConstructorReference(options.type)) {
-                    Type = TypeStore.findTypeFromName(options.type);
-                } else if(this.isTypeReference(options.type)) {
+                if(Vector.isConstructorReference(options.type)) {
+                    Constructor = ConstructorStore.findConstructorFromName(options.type);
+                } else if(Vector.isTypeReference(options.type)) {
                     // get first constructor header
-                    Type = TypeStore.findTypeFromBuffer(deserializer.buffer.slice(deserializer.offset));
+                    Constructor = ConstructorStore.findConstructorFromBuffer(deserializer.buffer.slice(deserializer.offset));
                 } else {
-                    throw new Error('Invalid type name: ' + options.type);
+                    this.onError('Invalid type name: %s', options.type);
+                    return false;
                 }
 
-                if(!Type) {
-                    throw new Error('Cannot find constructor for type: ' + options.type);
+                if(!Constructor) {
+                    this.onError('Cannot find constructor for type: %s', options.type);
+                    return false;
                 }
 
                 for(let i = 0; i < length; i++) {
-                    array[i] = Type.deserialize(deserializer);
+                    array[i] = Constructor.deserialize(deserializer);
                 }
         }
 
-        return array;
+        return new Vector({
+            type: options.type,
+            items: array
+        });
     }
 }
 
-module.exports = new Vector();
+module.exports = Vector;

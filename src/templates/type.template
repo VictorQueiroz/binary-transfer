@@ -1,8 +1,42 @@
-class {{constructorName}} {
+import _ from 'lodash';
+import { BaseConstructor } from '{{binaryTransferPath}}';
+
+class {{constructorName}} extends BaseConstructor {
     constructor(options) {
+        super();
+
         this._id = options._id;
         this._name = options._name;
         this._header = options._header;
+
+        if(!options.hasOwnProperty('_params')) {
+            this.onError('_params property is mandatory');
+            return false;
+        }
+
+        if(process.env.NODE_ENV == 'development') {
+            options._params.forEach(param => {
+                if(options._props.hasOwnProperty(param)) {
+                    return true;
+                }
+
+                this.onError('missing property %s for "%s" constructor', param, this._name);
+            });
+        }
+
+        if(options.hasOwnProperty('_props')) {
+            _.forEach(options._props, (value, key) => {
+                if(process.env.NODE_ENV == 'development') {
+                    if(options._params.indexOf(key) == -1) {
+                        this.onError('unexpected property "%s" on "%s"', key, this._name);
+                    }
+                }
+
+                this[key] = value;
+            });
+        }
+
+        this._params = options._params;
     }
 }
 

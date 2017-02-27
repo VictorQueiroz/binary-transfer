@@ -1,0 +1,22 @@
+class ConstructorStore {
+    constructor() {
+        this.storeById = {};
+        this.storeByName = {};
+    }
+
+    findConstructorFromBuffer(bytes, offset = 0) {
+        const id = bytes.readUInt32LE(offset);
+
+        return this.storeById[id];
+    }
+
+    findConstructorFromName(name) {
+        return this.storeByName[name];
+    }
+
+    register(id, Constructor) {
+        this.storeById[id] = this.storeByName[Constructor._name] = Constructor;
+    }
+}
+
+module.exports = new ConstructorStore();

@@ -1,69 +1,85 @@
-import vector from '{{rootPath}}/vector.js';
-import TypeStore from '{{typeStorePath}}';
+import Vector from '{{rootPath}}/Vector.js';
+import ConstructorStore from '{{rootPath}}/ConstructorStore.js';
 import {Deserializer, Serializer} from '{{binaryTransferPath}}';
 import {{typeFileData.data.constructorName}} from '{{typeFileData.filePath}}';
 
 const ctorName = '{{prefixedCtor}}';
-const ctorHeaderBytes = Buffer.alloc(4);
+const header = Buffer.alloc(4);
+const params = [];
 
-// write int32
-ctorHeaderBytes.writeUInt32LE({{id}}, 0);
+// constructor params
+{% for param in properties %}
+params.push('{{param}}');
+{% endfor %}
+
+// constructor header
+header.writeUInt32LE({{id}}, 0);
 
 class {{constructorName}} extends {{typeFileData.data.constructorName}} {
-    constructor() {
+    static _id = {{id}};
+    static _name = ctorName;
+    static _type = '{{ctorType}}';
+    static _header = header;
+
+    constructor(props) {
+
         super({
             _id: {{id}},
             _name: ctorName,
-            _header: ctorHeaderBytes
+            _props: props,
+            _header: header,
+            _params: params
         });
     }
 
-    deserialize(deserializer) {
-        return this.decode(undefined, deserializer);
+    serialize() {
+        return {{constructorName}}.encode(this);
     }
 
-    decode(bytes, parentDeserializer) {
-        const result = {
-            _: ctorName
-        };
-        const deserializer = parentDeserializer ? parentDeserializer : new Deserializer(bytes);
+    static deserialize(deserializer) {
+        return this.decode(deserializer);
+    }
 
+    static decode(deserializer) {
+        const result = {};
         const header = deserializer._readBytes(4);
 
-        if(!header.equals(ctorHeaderBytes)) {
-            this.onError('Invalid header. Expected for %s but got %s instead', ctorHeaderBytes.readInt32LE(0), header.readInt32LE(0));
-            return false;
+        if(process.env.NODE_ENV == 'development') {
+            if(!header.equals(header)) {
+                this.onError('Invalid header for %s. Expected for %s but got %s instead', this._name, header.readInt32LE(0), header.readInt32LE(0));
+                return false;
+            }
         }
 
         {% for param in params %}
-            (() => {
             {% if param.generic %}
                 result['{{param.key}}'] = deserializer.read{{param.method}}();
             {% elseif param.vector %}
-                result['{{param.key}}'] = vector.decode({
+                result['{{param.key}}'] = Vector.decode({
                     type: '{{param.type}}',
                     deserializer
                 });
             {% elseif param.constructorReference or param.typeReference %}
-                let Type;
-                {% if param.constructorReference %}
-                    Type = TypeStore.findTypeFromName('{{param.type}}');
-                {% else %}
-                    Type = TypeStore.findTypeFromBuffer(deserializer.buffer.slice(deserializer.offset));
-                {% endif %}
-                result['{{param.key}}'] = Type.deserialize(deserializer);
+                if(!this.Constructor) {
+                    {% if param.constructorReference %}
+                        this.Constructor = ConstructorStore.findConstructorFromName('{{param.type}}');
+                    {% else %}
+                        this.Constructor = ConstructorStore.findConstructorFromBuffer(deserializer.buffer.slice(deserializer.offset));
+                    {% endif %}
+                }
+
+                result['{{param.key}}'] = this.Constructor.deserialize(deserializer);
             {% endif %}
-            })();
         {% endfor %}
 
-        return result;
+        return new {{constructorName}}(result);
     }
 
-    encode(object) {
+    static encode(object) {
         const serializer = new Serializer();
 
         // write header
-        serializer.addBuffer(ctorHeaderBytes);
+        serializer.addBuffer(header);
 
         {% for param in params %}
             {% if param.generic %}
@@ -77,8 +93,6 @@ class {{constructorName}} extends {{typeFileData.data.constructorName}} {
     }
 }
 
-const ctorInstance = new {{constructorName}}();
+ConstructorStore.register({{id}}, {{constructorName}});
 
-TypeStore.register({{id}}, ctorInstance);
-
-module.exports = ctorInstance;
+module.exports = {{constructorName}};

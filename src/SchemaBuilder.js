@@ -6,6 +6,7 @@ class SchemaBuilder {
     static defaults = {
         binaryTransferPath: 'binary-transfer'
     };
+
     constructor(options) {
         defaults(options, SchemaBuilder.defaults);
         this.files = [];
@@ -53,9 +54,12 @@ class SchemaBuilder {
 
     createTypeFile(typeName, constructors) {
         const fullPath = typeName.split('.');
-        const typeData = {
+        fullPath.splice(1, 0, 'types/');
+
+        const context = {
             possibleIds: [],
-            constructorName: upperFirst(this.getRealTypeOrConstructorName(typeName)) + 'Type'
+            constructorName: upperFirst(this.getRealTypeOrConstructorName(typeName)) + 'Type',
+            binaryTransferPath: this.getBinaryTransferPath()
         };
 
         constructors.forEach(ctor => {
@@ -63,15 +67,14 @@ class SchemaBuilder {
                 return false;
             }
 
-            typeData.possibleIds.push(ctor.id);
+            context.possibleIds.push(ctor.id);
         });
 
-        fullPath.splice(1, 0, 'types/');
 
         const file = {
-            filePath: path.join(...fullPath, typeData.constructorName + '.js'),
+            filePath: path.join(...fullPath, context.constructorName + '.js'),
             template: fs.readFileSync(path.resolve(__dirname, 'templates/type.template')),
-            data: typeData
+            data: context
         };
 
         this.files.push(file);
@@ -138,7 +141,6 @@ class SchemaBuilder {
         const constructorName = this.getConstructorName(ctorName);
         const binaryTransferPath = this.getBinaryTransferPath();
 
-
         const prefixedName = ctor.constructor.split('.');
         const namespacedName = prefixedName.slice(1);
 
@@ -155,12 +157,14 @@ class SchemaBuilder {
                 ctor: namespacedName.join('.'),
                 params: this.createParams(ctor.params),
                 rootPath: rootPath.join('/'),
+                ctorType: ctor.type,
+                properties: ctor.params.map(param => param.name),
                 prefixedCtor: prefixedName.join('.'),
                 typeFileData: {
                     ...typeFile,
                     filePath: path.join(...rootPath, typeFile.filePath),
                 },
-                typeStorePath: path.join(...rootPath) + '/TypeStore.js',
+                typeStorePath: path.join(...rootPath) + '/ConstructorStore.js',
                 constructorName: constructorName,
                 binaryTransferPath: binaryTransferPath
             }
@@ -199,7 +203,7 @@ class SchemaBuilder {
 
             this.files.push({
                 filePath: path.join(schema.prefix, 'index.js'),
-                template: fs.readFileSync(path.resolve(__dirname, 'templates/schemaTypes.template')),
+                template: fs.readFileSync(path.resolve(__dirname, 'templates/schema_index.template')),
                 data: {
                     types: ctorFiles.map(file => {
                         return {
@@ -218,24 +222,31 @@ class SchemaBuilder {
         });
 
         this.files.push({
-            filePath: './TypeStore.js',
-            template: fs.readFileSync(path.resolve(__dirname, 'templates/typeStore.template')),
+            filePath: './ConstructorStore.js',
+            template: fs.readFileSync(path.resolve(__dirname, 'templates/constructor_store.template')),
             data: {}
         });
 
         this.files.push({
             filePath: './index.js',
-            template: fs.readFileSync(path.resolve(__dirname, 'templates/indexSchema.template')),
+            template: fs.readFileSync(path.resolve(__dirname, 'templates/root_index.template')),
             data: {
                 schemas: this.schemas.map(schema => schema.prefix)
             }
         });
 
         this.files.push({
-            filePath: './vector.js',
+            filePath: './Vector.js',
             template: fs.readFileSync(path.resolve(__dirname, 'templates/vector.template')),
             data: {
                 generics: this.generics,
+                lodashMethods: [
+                    'get', 'first', 'last', 'tail',
+                    'head'
+                ],
+                nativeArrayMethods: [
+                    'forEach', 'shift', 'pop', 'push'
+                ],
                 binaryTransferPath: this.getBinaryTransferPath()
             }
         });

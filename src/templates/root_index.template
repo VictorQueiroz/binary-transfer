@@ -1,0 +1,6 @@
+{% for schema in schemas %}
+exports['{{schema}}'] = require('./{{schema}}');
+{% endfor %}
+
+exports.Vector = require('./Vector');
+exports.ConstructorStore = require('./ConstructorStore');

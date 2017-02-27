@@ -1,39 +1,78 @@
-const { vector } = require('./build');
+require('babel-register');
+
+const _ = require('lodash');
+const crypto = require('crypto');
 const Benchmark = require('benchmark');
+const { Vector } = require('./build');
 
 const suite = new Benchmark.Suite();
+const items = {
+    int: new Array(4),
+    double: new Array(4),
+    string: new Array(4)
+};
 
-const intVector = vector.encode({
-    type: 'int',
-    items: [1,2,3,4,5]
-});
-const stringVector = vector.encode({
-    type: 'string',
-    items: ['a', 'b', 'c', 'd', 'e']
+for(let i = 0; i < items.double.length; i++) {
+    items.double[i] = -(Math.random() * (Math.random() * 100));
+}
+
+for(let i = 0; i < items.string.length; i++) {
+    items.string[i] = crypto.randomBytes(8).toString('hex');
+}
+
+for(let i = 0; i < items.int.length; i++) {
+    items.int[i] = crypto.randomBytes(4).readInt32LE(0);
+}
+
+const vectors = {};
+
+_.forEach(items, function(items, type) {
+    vectors[type] = Vector.encode({
+        type,
+        items
+    });
 });
 
-suite.add('vector<int>#encode', function() {
-    vector.encode({
+suite.add('Vector<int>#encode', function() {
+    Vector.encode({
         type: 'int',
-        items: [1,2,3,4,5]
+        items: items.int
     });
 })
-.add('vector<string>#encode', function() {
-    vector.encode({
+.add('Vector<string>#encode', function() {
+    Vector.encode({
         type: 'string',
-        items: ['a', 'b', 'c', 'd', 'e']
+        items: items.string
     });
 })
-.add('vector<string>#decode', function() {
-    vector.decode({
+.add('Vector<string>#decode', function() {
+    Vector.decode({
         type: 'string',
-        buffer: stringVector
+        buffer: vectors.string
     });
 })
-.add('vector<int>#decode', function() {
-    vector.decode({
+.add('Vector<string>#serialize', function() {
+    new Vector({
+        type: 'string',
+        items: items.string
+    }).serialize();
+})
+.add('Vector<double>#serialize', function() {
+    new Vector({
+        type: 'double',
+        items: items.double
+    }).serialize();
+})
+.add('Vector<int>#serialize', function() {
+    new Vector({
         type: 'int',
-        buffer: intVector
+        items: items.int
+    }).serialize();
+})
+.add('Vector<int>#decode', function() {
+    Vector.decode({
+        type: 'int',
+        buffer: vectors.int
     });
 })
 .on('cycle', function(event) {
