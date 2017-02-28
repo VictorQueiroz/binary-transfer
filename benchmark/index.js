@@ -3,7 +3,7 @@ require('babel-register');
 const _ = require('lodash');
 const crypto = require('crypto');
 const Benchmark = require('benchmark');
-const { Vector } = require('./build');
+const { Vector } = require('../build');
 
 const suite = new Benchmark.Suite();
 const items = {
