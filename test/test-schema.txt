@@ -1,9 +1,15 @@
 --- types ---
 Account account -> id: int, username: string, email: string;
+
 Void void;
+
+Bool boolTrue;
+Bool boolFalse;
 
 Post post -> id: int, author: Account, body: string;
 
 players.Player players.player -> id: int;
 
 players.PlayersList players.playersList -> players: Vector<players.Player>;
+
+players.CreatePlayerResponse players.createPlayer -> online: Bool;

@@ -1,244 +1,72 @@
+import _ from 'lodash';
 import fs from 'fs';
 import path from 'path';
-import { isFunction, forEach, upperFirst, defaults } from 'lodash';
+import BaseConstructor from './BaseConstructor';
 
 class SchemaBuilder {
-    static defaults = {
-        binaryTransferPath: 'binary-transfer'
-    };
+    constructor(options = {}) {
+        _.defaults(options, {
+            binaryTransferPath: 'binary-transfer'
+        });
 
-    constructor(options) {
-        defaults(options, SchemaBuilder.defaults);
-        this.files = [];
         this.schemas = options.schemas;
-        this.generics = {
-            int: 'Int',
-            long: 'Long',
-            uint: 'UInt',
-            ulong: 'ULong',
-            float: 'Float',
-            bytes: 'Bytes',
-            string: 'String',
-            double: 'Double'
-        };
+        this.generics = BaseConstructor.generics;
         this.binaryTransferPath = options.binaryTransferPath;
     }
 
-    getConstructorName(name) {
-        return upperFirst(this.getRealTypeOrConstructorName(name));
-    }
+    build() {
+        const files = [];
 
-    isTypeReference(name) {
-        if(name.indexOf('.') > -1) {
-            name = this.getRealTypeOrConstructorName(name);
-        }
-        return name.charAt(0).toUpperCase() == name.charAt(0);
-    }
+        this.schemas.forEach(schema => {
+            const constructors = [];
 
-    isConstructorReference(name) {
-        if(name.indexOf('.') > -1) {
-            name = this.getRealTypeOrConstructorName(name);
-        }
-        return name.charAt(0).toLowerCase() == name.charAt(0);
-    }
+            schema.constructors.predicates.map(predicate => {
+                const result = this.createPredicate(predicate, schema);
 
-    getRealTypeOrConstructorName(name) {
-        const dotIndex = name.indexOf('.');
-
-        if(dotIndex > -1) {
-            return this.getRealTypeOrConstructorName(name.substring(dotIndex + 1));
-        }
-
-        return name;
-    }
-
-    createTypeFile(typeName, constructors) {
-        const fullPath = typeName.split('.');
-        fullPath.splice(1, 0, 'types/');
-
-        const context = {
-            possibleIds: [],
-            constructorName: upperFirst(this.getRealTypeOrConstructorName(typeName)) + 'Type',
-            binaryTransferPath: this.getBinaryTransferPath()
-        };
-
-        constructors.forEach(ctor => {
-            if(ctor.type != typeName) {
-                return false;
-            }
-
-            context.possibleIds.push(ctor.id);
-        });
-
-
-        const file = {
-            filePath: path.join(...fullPath, context.constructorName + '.js'),
-            template: fs.readFileSync(path.resolve(__dirname, 'templates/type.template')),
-            data: context
-        };
-
-        this.files.push(file);
-
-        return file;
-    }
-
-    isGenericType(type) {
-        return this.generics.hasOwnProperty(type);
-    }
-
-    isVectorType(type) {
-        return type.substring(0, 6) == 'Vector';
-    }
-
-    createParams(params) {
-        return params.map(param => {
-            if(this.isVectorType(param.type)) {
-                return {
-                    key: param.name,
-                    type: param.type.substring(7, param.type.length - 1),
-                    vector: true
-                };
-            }
-
-            if(this.isGenericType(param.type)) {
-                return {
-                    key: param.name,
-                    method: this.generics[param.type],
-                    generic: true,
-                };
-            }
-
-            if(this.isTypeReference(param.type)) {
-                return {
-                    key: param.name,
-                    type: param.type,
-                    typeReference: true,
-                };
-            }
-
-            if(this.isConstructorReference(param.type)) {
-                return {
-                    key: param.name,
-                    type: param.type,
-                    constructorReference: true
-                };
-            }
-        });
-    }
-
-    getBinaryTransferPath() {
-        return (
-            isFunction(this.binaryTransferPath) ?
-            this.binaryTransferPath(__dirname) :
-            this.binaryTransferPath
-        );
-    }
-
-    createConstructor({ ctor, constructors }) {
-        const typeFile = this.createTypeFile(ctor.type, constructors);
-        const fullPath = ctor.constructor.split('.');
-        const ctorName = fullPath[fullPath.length - 1];
-        const constructorName = this.getConstructorName(ctorName);
-        const binaryTransferPath = this.getBinaryTransferPath();
-
-        const prefixedName = ctor.constructor.split('.');
-        const namespacedName = prefixedName.slice(1);
-
-        namespacedName.splice(namespacedName.length - 1, 1, constructorName);
-
-        fullPath.splice(1, 0, 'constructors');
-
-        const rootPath = fullPath.map(_ => '..');
-        const file = {
-            filePath: path.join(...fullPath, constructorName + '.js'),
-            template: fs.readFileSync(path.resolve(__dirname, 'templates/constructor.template')),
-            data: {
-                id: ctor.id,
-                ctor: namespacedName.join('.'),
-                params: this.createParams(ctor.params),
-                rootPath: rootPath.join('/'),
-                ctorType: ctor.type,
-                properties: ctor.params.map(param => param.name),
-                prefixedCtor: prefixedName.join('.'),
-                typeFileData: {
-                    ...typeFile,
-                    filePath: path.join(...rootPath, typeFile.filePath),
-                },
-                typeStorePath: path.join(...rootPath) + '/ConstructorStore.js',
-                constructorName: constructorName,
-                binaryTransferPath: binaryTransferPath
-            }
-        };
-
-        this.files.push(file);
-        return file;
-    }
-
-    createSchema(schema) {
-        forEach(schema.constructors, (constructors, type) => {
-            constructors = constructors.map(ctor => {
-                return {
-                    ...ctor,
-                    type: `${schema.prefix}.${ctor.type}`,
-                    constructor: `${schema.prefix}.${ctor.constructor}`,
-                    params: ctor.params.map(param => {
-                        if(this.isGenericType(param.type) || this.isVectorType(param.type) || !schema.prefix) {
-                            return {...param};
-                        }
-
-                        return {
-                            ...param,
-                            type: `${schema.prefix}.${param.type}`
-                        };
-                    })
-                };
-            });
-
-            const ctorFiles = constructors.map((ctor) => {
-                return this.createConstructor({
-                    ctor,
-                    constructors: constructors
+                result.predicates.forEach(file => {
+                    constructors.push(file);
                 });
+                files.push(...result.predicates, ...result.types);
             });
 
-            this.files.push({
-                filePath: path.join(schema.prefix, 'index.js'),
+            files.push({
+                filePath: path.join(schema.name, 'index.js'),
                 template: fs.readFileSync(path.resolve(__dirname, 'templates/schema_index.template')),
-                data: {
-                    types: ctorFiles.map(file => {
+                context: {
+                    constructors: constructors.map(file => {
+                        const name = file.context.predicate.name.split('.');
+                        name.splice(name.length - 1, 1, file.context.constructorName);
+
                         return {
-                            ctor: file.data.ctor,
+                            name: name.join('.'),
                             filePath: path.join('..', file.filePath)
                         };
                     })
                 }
             });
         });
-    }
 
-    build() {
-        this.schemas.forEach(schema => {
-            this.createSchema(schema);
-        });
-
-        this.files.push({
+        files.push({
             filePath: './ConstructorStore.js',
             template: fs.readFileSync(path.resolve(__dirname, 'templates/constructor_store.template')),
-            data: {}
-        });
+            context: {
 
-        this.files.push({
-            filePath: './index.js',
-            template: fs.readFileSync(path.resolve(__dirname, 'templates/root_index.template')),
-            data: {
-                schemas: this.schemas.map(schema => schema.prefix)
             }
         });
 
-        this.files.push({
+        files.push({
+            filePath: './index.js',
+            template: fs.readFileSync(path.resolve(__dirname, 'templates/root_index.template')),
+            context: {
+                schemas: this.schemas.map(schema => schema.name),
+                binaryTransferPath: this.binaryTransferPath
+            }
+        });
+
+        files.push({
             filePath: './Vector.js',
             template: fs.readFileSync(path.resolve(__dirname, 'templates/vector.template')),
-            data: {
+            context: {
                 generics: this.generics,
                 lodashMethods: [
                     'get', 'first', 'last', 'tail',
@@ -247,11 +75,118 @@ class SchemaBuilder {
                 nativeArrayMethods: [
                     'forEach', 'shift', 'pop', 'push'
                 ],
-                binaryTransferPath: this.getBinaryTransferPath()
+                binaryTransferPath: this.binaryTransferPath
             }
         });
 
-        return this.files;
+        return files;
+    }
+
+    createTypeFile(type, schema) {
+        const context = {
+            type: {
+                name: `${schema.name}.${type}`
+            },
+            possibleIds: schema.constructors.predicates.map(predicate => {
+                return predicate.id;
+            }),
+            constructorName: BaseConstructor.getConstructorName(type) + 'Type',
+            binaryTransferPath: this.binaryTransferPath
+        };
+
+        return {
+            template: fs.readFileSync(path.resolve(__dirname, 'templates/type.template')),
+            filePath: path.join(schema.name, 'types', path.join(...type.split('.')) + '.js'),
+            context
+        };
+    }
+
+    createParam(param, predicate, schema) {
+        if(BaseConstructor.isVectorType(param.type)) {
+            return {
+                key: param.name,
+                type: param.type.substring(7, param.type.length - 1),
+                vector: true
+            };
+        }
+
+        if(BaseConstructor.isGenericType(param.type)) {
+            return {
+                key: param.name,
+                type: param.type,
+                method: this.generics[param.type],
+                generic: true,
+            };
+        }
+
+        const possibleIds = [];
+
+
+        if(BaseConstructor.isTypeReference(param.type)) {
+            schema.constructors.predicates.map(predicate => {
+                if(predicate.type == param.type) {
+                    possibleIds.push(predicate.id);
+                }
+            });
+
+            return {
+                key: param.name,
+                type: `${schema.name}.${param.type}`,
+                possibleIds: possibleIds,
+                typeReference: true
+            };
+        }
+
+        if(BaseConstructor.isConstructorReference(param.type)) {
+            schema.constructors.predicates.map(predicate => {
+                if(predicate.name == param.type) {
+                    possibleIds.push(predicate.id);
+                }
+            });
+
+            return {
+                key: param.name,
+                type: `${schema.name}.${param.type}`,
+                possibleIds: possibleIds,
+                constructorReference: true
+            };
+        }
+    }
+
+    createPredicate(predicate, schema) {
+        const typeFile = this.createTypeFile(predicate.type, schema);
+        const filePath = path.join(schema.name, 'constructors', path.join(...predicate.name.split('.')) + '.js');
+        const rootPath = path.join(...path.dirname(path.join(...filePath.split('/'))).split('/').map(() => '..'));
+
+        const files = [];
+
+        const name = `${schema.name}.${predicate.name}`;
+        const context = {
+            schema,
+            params: predicate.params.map(param => {
+                return this.createParam(param, predicate, schema);
+            }),
+            rootPath,
+            generics: this.generics,
+            predicate,
+            typeFileData: {
+                ...typeFile,
+                filePath: path.join(rootPath, typeFile.filePath)
+            },
+            constructorName: BaseConstructor.getConstructorName(name),
+            binaryTransferPath: this.binaryTransferPath
+        };
+
+        files.push({
+            filePath,
+            template: fs.readFileSync(path.resolve(__dirname, 'templates/constructor.template')),
+            context
+        });
+
+        return {
+            types: [typeFile],
+            predicates: files
+        };
     }
 }
 

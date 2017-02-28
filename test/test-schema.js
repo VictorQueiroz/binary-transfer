@@ -20,6 +20,48 @@ describe('TestSchema', function() {
 
             assert(Vector.encode(vector).equals(bytes));
         });
+
+        it('should support direct pointing to a constructor', function() {
+            const vector = new Vector({
+                type: 'test.account',
+                items: [new test.Account({
+                    id: 100,
+                    email: 'a@b.c',
+                    username: '1234567'
+                })]
+            });
+
+            assert(Vector.decode({
+                type: 'test.account',
+                buffer: vector.serialize()
+            }).serialize().equals(vector.serialize()));
+        });
+
+        describe('toJSON()', function() {
+            it('should transform Vector<int> to JSON', function() {
+                assert.equal(JSON.stringify(new Vector({
+                    type: 'int',
+                    items: [1,2,3,4]
+                })), '[1,2,3,4]');
+            });
+
+            it('should transform Vector<test.Account> into JSON', function() {
+                const vector = new Vector({
+                    type: 'test.Account',
+                    items: [new test.Account({
+                        id: 100,
+                        email: 'a@b.c',
+                        username: '1234567'
+                    })]
+                });
+
+                assert.equal(JSON.stringify(vector), JSON.stringify([{
+                    id: 100,
+                    username: '1234567',
+                    email: 'a@b.c'
+                }]));
+            });
+        });
     });
 
     describe('toJSON()', function() {
@@ -155,6 +197,21 @@ describe('TestSchema', function() {
         });
     });
 
+    it('should encode Vector<double>', function() {
+        const vector = Vector.decode({
+            type: 'double',
+            buffer: Vector.encode({
+                type: 'double',
+                items: [
+                    -33.398824,
+                    12.31388
+                ]
+            })
+        });
+
+        assert.deepEqual(vector.items, [-33.398824, 12.31388]);
+    });
+
     it('should encode Vector<players.Player>', function() {
         const bytes = Vector.encode({
             type: 'test.players.Player',
@@ -249,6 +306,52 @@ describe('TestSchema', function() {
         assert.equal('e', deserializer.readString());
     });
 
+    it('should encode Vector<test.Post> using serialize()', function() {
+        const vector = new Vector({
+            type: 'test.Post',
+            items: [new test.Post({
+                id: 100,
+                body: '',
+                author: new test.Account({
+                    id: 100,
+                    email: '100@100.100',
+                    username: '100'
+                })
+            }),
+            new test.Post({
+                id: 200,
+                body: '',
+                author: new test.Account({
+                    id: 200,
+                    email: '200@200.200',
+                    username: '200'
+                })
+            })]
+        });
+
+        assert(vector.serialize().equals(Vector.encode({
+            type: 'test.Post',
+            items: [test.Post.encode({
+                id: 100,
+                body: '',
+                author: test.Account.encode({
+                    id: 100,
+                    email: '100@100.100',
+                    username: '100'
+                })
+            }),
+            test.Post.encode({
+                id: 200,
+                body: '',
+                author: test.Account.encode({
+                    id: 200,
+                    email: '200@200.200',
+                    username: '200'
+                })
+            })]
+        })));
+    });
+
     it('should decode Vector<string>', function() {
         const items = ['a', 'b', 'c', 'd', 'e'];
         const bytes = Vector.encode({
@@ -264,5 +367,42 @@ describe('TestSchema', function() {
         items.forEach((item, i) => {
             assert.equal(vector.get(i), item);
         });
+    });
+
+    it('should throw an error if you instantiate a constructor with a missing param', function() {
+        assert.throws(function() {
+            new test.Account({
+
+            });
+        }, /missing property \"id\" for \"test.account\" constructor/);
+    });
+
+    it('should throw if found a invalid header for non-generic param type', function() {
+        const bytes = test.Post.encode({
+            id: 100,
+            author: test.Account.encode({
+                id: 100,
+                username: 'xxxxxx',
+                email: 'xxxxx'
+            }),
+            body: ''
+        });
+
+        assert.equal(bytes.readUInt32LE(8), test.Account._id);
+        bytes.writeUInt32LE(Vector._id, 8);
+
+        assert.throws(function() {
+            test.Post.decode(new Deserializer(bytes));
+        }, /invalid header for param \"author\". expected 3133324573 but got 460212315 instead/);
+    });
+
+    it('should throw if give an invalid param type is given', function() {
+        assert.throws(function() {
+            new test.players.CreatePlayer({
+                online: new test.players.CreatePlayer({
+                    online: new test.BoolTrue()
+                })
+            });
+        }, /invalid type for param "online". expected test.Bool but got test.players.CreatePlayerResponse instead/);
     });
 });

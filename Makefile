@@ -1,20 +1,21 @@
 tdd: build_test_schema
-	./node_modules/.bin/mocha \
+	NODE_ENV=development ./node_modules/.bin/mocha \
 	test/ \
+	--recursive \
 	--colors \
 	--bail \
-	--require babel-register
-	--recursive \
+	--watch \
+	--require babel-register \
 	--check-leaks
 
 build_test_schema:
 	node build-test-schema.js
 
 benchmark: build_test_schema
-	node benchmark.js
+	node benchmark/index.js
 
 test: build_test_schema benchmark
-	./node_modules/.bin/mocha \
+	NODE_ENV=development ./node_modules/.bin/mocha \
 	test/ \
 	--recursive \
 	--check-leaks \

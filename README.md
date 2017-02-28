@@ -1,5 +1,15 @@
 # binary-transfer
 
+Travel your data very fast using binary serialization
+
+### About the project
+
+The aim of this project is:
+
+- A very small library that can travel data very fast
+- A scheme of how your data looks like to increase productivity between teams
+- To create a data model that can be easily be understood, changed or mantained
+
 ### Schema
 ```
 Account account -> id: int, username: string, email: string;
@@ -7,7 +17,7 @@ Account account -> id: int, username: string, email: string;
 
 ### Usage
 ```js
-import { dl, encode, decode } from '../schema';
+import { dl, decode } from '../schema';
 
 let bytes;
 
@@ -15,13 +25,6 @@ bytes = dl.Account.encode({
     id: 100,
     email: 'mark@jb.im',
     username: 'mark_jb',
-});
-// -- OR --
-bytes = encode({
-    _: 'dl.account',
-    id: 100,
-    email: 'mark@jb.im',
-    username: 'mark_jb'
 });
 
 assert.deepEqual(decode(bytes), {
@@ -34,21 +37,20 @@ assert.deepEqual(decode(bytes), {
 
 ### Building your schema
 
-```js
-import { SchemaBuilder } from 'binary-transfer';
+Schema syntax is "parsed" by `SchemaParser` and then `SchemaBuilder`. This means that there's nothing stopping you to create your own `SchemaParser` as long as you give `SchemaBuilder` the right data.
 
+```js
 const fs = require('fs');
+const nunjucks = require('nunjucks');
+const { SchemaParser, SchemaBuilder } = require('binary-transfer');
+
 const schema = new SchemaParser().parse(fs.readFileSync('./test/test-schema.txt'));
 const builder = new SchemaBuilder({
     schemas: [{
-        prefix: 'test',
-        constructors: {
-            predicates: schema
-        }
-    }],
-    binaryTransferPath: path.resolve(__dirname, 'src')
+        name: 'test',
+        predicates: schema.predicates
+    }]
 });
-const nunjucks = require('nunjucks');
 
 const templates = builder.build();
 
@@ -83,6 +85,7 @@ const photoRegular = new dl.PhotoRegular({
         items: [12.21211, -20.1211]
     })
 });
+
 assert.ok(photoRegular.serialize().equals(bytes));
 ```
 

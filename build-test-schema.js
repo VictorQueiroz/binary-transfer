@@ -10,7 +10,7 @@ const { SchemaParser, SchemaBuilder } = require('./src');
 const schema = new SchemaParser().parse(fs.readFileSync('./test/test-schema.txt'));
 const builder = new SchemaBuilder({
     schemas: [{
-        prefix: 'test',
+        name: 'test',
         constructors: {
             predicates: schema
         }
@@ -26,7 +26,7 @@ templates.forEach(function(file) {
 
     console.log('parsing %s', file.filePath);
 
-    const contents = nunjucks.renderString(file.template.toString('utf8'), file.data);
+    const contents = nunjucks.renderString(file.template.toString('utf8'), file.context);
 
     mkdirp.sync(folder);
     writeFileSync(path.resolve(folder, path.basename(file.filePath)), contents);

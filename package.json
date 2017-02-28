@@ -6,6 +6,29 @@
   "scripts": {
     "test": "make test"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/VictorQueiroz/binary-transfer"
+  },
+  "description": "Travel your data very fast using binary serialization",
+  "bugs": {
+    "url": "https://github.com/VictorQueiroz/binary-transfer/issues",
+    "email": "victorcqueirzg@gmail.com"
+  },
+  "author": {
+    "name": "Victor Queiroz",
+    "email": "victorcqueirozg@gmail.com",
+    "url": "victorqueiroz.github.io"
+  },
+  "keywords": [
+    "data",
+    "fast",
+    "schema",
+    "binary",
+    "constructor",
+    "transference"
+  ],
+  "contributors": [],
   "dependencies": {
     "crc": "^3.4.4",
     "lodash": "^4.17.4",

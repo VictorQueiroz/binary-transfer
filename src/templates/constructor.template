@@ -1,54 +1,176 @@
+import _ from 'lodash';
 import Vector from '{{rootPath}}/Vector.js';
 import ConstructorStore from '{{rootPath}}/ConstructorStore.js';
-import {Deserializer, Serializer} from '{{binaryTransferPath}}';
-import {{typeFileData.data.constructorName}} from '{{typeFileData.filePath}}';
+import {{typeFileData.context.constructorName}} from '{{typeFileData.filePath}}';
+import {Deserializer, Serializer, BaseConstructor} from '{{binaryTransferPath}}';
 
-const ctorName = '{{prefixedCtor}}';
 const header = Buffer.alloc(4);
 const params = [];
 
 // constructor params
-{% for param in properties %}
-params.push('{{param}}');
+{% for param in predicate.params %}
+params.push('{{ param.name }}');
 {% endfor %}
 
 // constructor header
-header.writeUInt32LE({{id}}, 0);
+header.writeUInt32LE({{ predicate.id }}, 0);
 
-class {{constructorName}} extends {{typeFileData.data.constructorName}} {
-    static _id = {{id}};
-    static _name = ctorName;
-    static _type = '{{ctorType}}';
+class {{constructorName}} extends {{ typeFileData.context.constructorName }} {
+    static _id = {{ predicate.id }};
+    static _type = '{{ predicate.type }}';
+    static _name = '{{ schema.name }}.{{ predicate.name }}';
     static _header = header;
 
     constructor(props) {
-
         super({
-            _id: {{id}},
-            _name: ctorName,
+            _id: {{ predicate.id }},
+            _type: '{{ schema.name }}.{{ predicate.type }}',
+            _name: '{{ schema.name }}.{{ predicate.name }}',
             _props: props,
             _header: header,
             _params: params
         });
+
+        if(process.env.NODE_ENV != 'production') {
+            {% for param in params %}
+                {% if param.vector %}
+                this._validateVector('{{ param.key }}', this['{{ param.key }}'], '{{ param.type }}');
+                {% else %}
+                this._validateProperty('{{ param.key }}', this['{{ param.key }}'], '{{ param.type }}');
+                {% endif %}
+            {% endfor %}
+        }
+    }
+
+    _validateVector(property, value, type) {
+        if(value.type == type) {
+            return true;
+        }
+
+        this.onError('invalid vector type for param %s. expected %s but got %s instead',
+            property,
+            type,
+            value.type);
+    }
+
+    _validateProperty(property, value, type) {
+        switch(type) {
+        {% for type, method in generics %}
+        case '{{ type }}':
+            this._validateGenericProperty(property, value, type);
+            break;
+        {% endfor %}
+        default:
+            if(BaseConstructor.isTypeReference(type)) {
+                if(value._type == type) {
+                    break;
+                }
+
+                this.onError('invalid type for param "%s". expected %s but got %s instead',
+                    property,
+                    type,
+                    value._type
+                );
+                break;
+            }
+
+            if(BaseConstructor.isConstructorReference(type)) {
+                if(value._name == type) {
+                    break;
+                }
+
+                this.onError('invalid constructor for param "%s". expected %s but got %s instead',
+                    property,
+                    type,
+                    value._name
+                );
+                break;
+            }
+        }
+    }
+
+    _expectProperty(property, value, type) {
+        this.onError('Invalid type for param "%s". expected type %s but got %s instead',
+            property,
+            type,
+            typeof value
+        );
+    }
+
+    _validateGenericProperty(property, value, type) {
+        switch(type) {
+        case 'int':
+        case 'uint':
+        case 'float':
+        case 'double':
+            if(_.isNumber(value)) {
+                break;
+            }
+
+            this._expect(property, value, 'number');
+            break;
+
+        case 'bytes':
+            if(Buffer.isBuffer(value)) {
+                break;
+            }
+
+            this._expect(property, value, 'Buffer');
+            break;
+
+        case 'long':
+        case 'ulong':
+            if(_.isNumber(value) || _.isString(value)) {
+                break;
+            }
+            this._expect(property, value, 'number or string');
+            break;
+
+        case 'string':
+            if(_.isString(value)) {
+                break;
+            }
+
+            this._expect(property, value, 'string');
+            break;
+
+        default:
+            this.onError('unhandled type of %s', type);
+        }
     }
 
     serialize() {
-        return {{constructorName}}.encode(this);
+        const object = {};
+
+        {% for param in params %}
+        object['{{ param.key }}'] = this['{{ param.key }}']{% if not param.generic %}.serialize(){% endif %};
+        {% endfor %}
+
+        return {{ constructorName }}.encode(object);
     }
 
     static deserialize(deserializer) {
         return this.decode(deserializer);
     }
 
+    static validate(header) {
+        if(BaseConstructor.validate(header, [this._id])) {
+            return true;
+        }
+
+        this.onError('invalid header for constructor "%s". expected %s but got %s instead',
+            this._name,
+            this._id,
+            header.readUInt32LE(0)
+        );
+    }
+
     static decode(deserializer) {
         const result = {};
         const header = deserializer._readBytes(4);
 
-        if(process.env.NODE_ENV == 'development') {
-            if(!header.equals(header)) {
-                this.onError('Invalid header for %s. Expected for %s but got %s instead', this._name, header.readInt32LE(0), header.readInt32LE(0));
-                return false;
-            }
+        if(process.env.NODE_ENV != 'production') {
+            this.validate(header);
         }
 
         {% for param in params %}
@@ -60,6 +182,30 @@ class {{constructorName}} extends {{typeFileData.data.constructorName}} {
                     deserializer
                 });
             {% elseif param.constructorReference or param.typeReference %}
+                if(process.env.NODE_ENV != 'production') {
+                (() => {
+                let found = false;
+                const ids = [{{ param.possibleIds | join(', ') }}];
+                const header = deserializer.buffer.readUInt32LE(deserializer.offset);
+
+                for(let i = 0; i < ids.length; i++) {
+                    if(header == ids[i]) {
+                        found = true;
+                        break;
+                    }
+                }
+
+                if(!found) {
+                    this.onError('invalid header for param "%s". expected %s but got %s instead',
+                        '{{ param.key }}',
+                        ids.join(' or '),
+                        header
+                    );
+                    return false;
+                }
+                })();
+                }
+
                 if(!this.Constructor) {
                     {% if param.constructorReference %}
                         this.Constructor = ConstructorStore.findConstructorFromName('{{param.type}}');
@@ -72,7 +218,7 @@ class {{constructorName}} extends {{typeFileData.data.constructorName}} {
             {% endif %}
         {% endfor %}
 
-        return new {{constructorName}}(result);
+        return new {{ constructorName }}(result);
     }
 
     static encode(object) {
@@ -93,6 +239,6 @@ class {{constructorName}} extends {{typeFileData.data.constructorName}} {
     }
 }
 
-ConstructorStore.register({{id}}, {{constructorName}});
+ConstructorStore.register({{ predicate.id }}, {{ constructorName }});
 
-module.exports = {{constructorName}};
+module.exports = {{ constructorName }};

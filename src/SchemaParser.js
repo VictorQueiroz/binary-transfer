@@ -20,20 +20,20 @@ class SchemaParser {
             const ctorAndParams = s.split('->');
             const typeDef = ctorAndParams[0].split(' ').map(m => m.trim()).filter(m => m);
             const ctorType = typeDef[0];
-            const constructor = typeDef[1];
+            const name = typeDef[1];
             const stringParams = ctorAndParams[1] || '';
             const params = stringParams.split(',').filter(t => t).map(t => t.split(':').map(m => m.trim()));
 
             return {
                 id: crc.crc32(s),
                 type: ctorType,
+                name: name,
                 params: params.map(param => {
                     return {
                         type: param[1],
                         name: param[0]
                     };
-                }),
-                constructor: constructor
+                })
             };
         });
 

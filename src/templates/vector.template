@@ -1,16 +1,19 @@
 import _ from 'lodash';
 import ConstructorStore from './ConstructorStore';
-import { Deserializer, Serializer } from '{{binaryTransferPath}}';
+import { Deserializer, Serializer, BaseConstructor } from '{{binaryTransferPath}}';
 
-const ctorHeaderBytes = Buffer.alloc(4);
-ctorHeaderBytes.writeUInt32LE(460212315, 0);
+const header = Buffer.allocUnsafe(4);
+header.writeUInt32LE(460212315, 0);
 
-class Vector {
-    static _id = ctorHeaderBytes.readUInt32LE(0);
+class Vector extends BaseConstructor {
+    static _id = header.readUInt32LE(0);
     static _name = 'vector';
+    static _type = 'Vector';
 
     constructor(options) {
-        this._id = ctorHeaderBytes.readUInt32LE(0);
+        super();
+
+        this._id = header.readUInt32LE(0);
         this._name = 'vector';
         this.type = options.type;
         this.items = options.items;
@@ -28,10 +31,30 @@ class Vector {
     }
     {% endfor %}
 
+    toJSON() {
+        return this.items;
+    }
+
     serialize() {
+        const items = new Array(this.items.length);
+
+        switch(this.type) {
+        {% for type, method in generics %}
+        case '{{ type }}':
+            for(let i = 0; i < items.length; i++) {
+                items[i] = this.items[i];
+            }
+            break;
+        {% endfor %}
+        default:
+            for(let i = 0; i < items.length; i++) {
+                items[i] = this.items[i].serialize();
+            }
+        }
+
         return Vector.encode({
             type: this.type,
-            items: this.items
+            items: items
         });
     }
 
@@ -39,7 +62,7 @@ class Vector {
         const serializer = new Serializer();
 
         // write vector header
-        serializer.addBuffer(ctorHeaderBytes);
+        serializer.addBuffer(header);
 
         const length = options.items.length;
 
@@ -47,47 +70,29 @@ class Vector {
 
         for(let i = 0; i < length; i++) {
             switch(options.type) {
-                {% for type, method in generics %}
-                case '{{type}}':
-                    serializer.write{{method}}(options.items[i]);
-                    break;
-                {% endfor %}
-                default:
-                    serializer.addBuffer(options.items[i]);
+            {% for type, method in generics %}
+            case '{{type}}':
+                serializer.write{{method}}(options.items[i]);
+                break;
+            {% endfor %}
+            default:
+                serializer.addBuffer(options.items[i]);
             }
         }
 
         return serializer.getBuffer();
     }
 
-    static skipDots(name) {
-        const i = name.indexOf('.');
-
-        if(i > -1) {
-            return this.skipDots(name.substring(i + 1));
-        }
-
-        return name;
-    }
-
-    static isConstructorReference(name){
-        name = this.skipDots(name);
-
-        return name && name[0] == name[0].toLowerCase();
-    }
-
-    static isTypeReference(name){
-        name = this.skipDots(name);
-
-        return name && name[0] == name[0].toUpperCase();
-    }
-
     static decode(options) {
         const deserializer = options.hasOwnProperty('deserializer') ? options.deserializer : new Deserializer(options.buffer);
         const header = deserializer._readBytes(4);
 
-        if(!header.equals(ctorHeaderBytes)) {
-            this.onError('Expected ' + ctorHeaderBytes.readUInt32LE(0) + ' but got ' + header.readUInt32LE(0));
+        if(!header.equals(header)) {
+            this.onError(
+                'Invalid header for vector. Expected %s but got %s',
+                this._id,
+                header.readUInt32LE(0)
+            );
             return false;
         }
 
@@ -96,33 +101,33 @@ class Vector {
 
         switch(options.type) {
         {% for type, method in generics %}
-            case '{{type}}':
-                for(let i = 0; i < length; i++) {
-                    array[i] = deserializer.read{{method}}();
-                }
-                break;
+        case '{{type}}':
+            for(let i = 0; i < length; i++) {
+                array[i] = deserializer.read{{method}}();
+            }
+            break;
         {% endfor %}
-            default:
-                let Constructor;
+        default:
+            let Constructor;
 
-                if(Vector.isConstructorReference(options.type)) {
-                    Constructor = ConstructorStore.findConstructorFromName(options.type);
-                } else if(Vector.isTypeReference(options.type)) {
-                    // get first constructor header
-                    Constructor = ConstructorStore.findConstructorFromBuffer(deserializer.buffer.slice(deserializer.offset));
-                } else {
-                    this.onError('Invalid type name: %s', options.type);
-                    return false;
-                }
+            if(BaseConstructor.isConstructorReference(options.type)) {
+                Constructor = ConstructorStore.findConstructorFromName(options.type);
+            } else if(BaseConstructor.isTypeReference(options.type)) {
+                // get first constructor header
+                Constructor = ConstructorStore.findConstructorFromBuffer(deserializer.buffer.slice(deserializer.offset));
+            } else {
+                this.onError('Invalid type name: %s', options.type);
+                return false;
+            }
 
-                if(!Constructor) {
-                    this.onError('Cannot find constructor for type: %s', options.type);
-                    return false;
-                }
+            if(!Constructor) {
+                this.onError('Cannot find constructor for type: %s', options.type);
+                return false;
+            }
 
-                for(let i = 0; i < length; i++) {
-                    array[i] = Constructor.deserialize(deserializer);
-                }
+            for(let i = 0; i < length; i++) {
+                array[i] = Constructor.deserialize(deserializer);
+            }
         }
 
         return new Vector({

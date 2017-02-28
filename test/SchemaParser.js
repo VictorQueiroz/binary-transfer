@@ -29,12 +29,12 @@ describe('SchemaParser', function() {
                 name: 'email',
                 type: 'string'
             }],
-            constructor: 'account'
+            name: 'account'
         }, {
             id: 1363145673,
             type: 'Void',
             params: [],
-            constructor: 'void'
+            name: 'void'
         }]);
     });
 
@@ -46,7 +46,7 @@ describe('SchemaParser', function() {
                 type: 'int',
                 name: 'id'
             }],
-            constructor: 'user.userRegular'
+            name: 'user.userRegular'
         }]);
     });
 });
