@@ -22,6 +22,20 @@ class Serializer {
         this.addBuffer(buffer);
     }
 
+    writeShort(int) {
+        const buffer = Buffer.allocUnsafe(2);
+        buffer.writeInt16LE(int, 0);
+
+        this.addBuffer(buffer);
+    }
+
+    writeUShort(int) {
+        const buffer = Buffer.allocUnsafe(2);
+        buffer.writeUInt16LE(int, 0);
+
+        this.addBuffer(buffer);
+    }
+
     writeFloat(int) {
         const buffer = Buffer.allocUnsafe(4);
 

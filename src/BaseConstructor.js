@@ -6,10 +6,12 @@ class BaseConstructor {
         int: 'Int',
         long: 'Long',
         uint: 'UInt',
+        short: 'Short',
         ulong: 'ULong',
         float: 'Float',
         bytes: 'Bytes',
         string: 'String',
+        ushort: 'UShort',
         double: 'Double'
     };
 

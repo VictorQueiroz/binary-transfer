@@ -24,6 +24,18 @@ class Deserializer {
         return bytes.readInt32LE(0);
     }
 
+    readShort() {
+        const bytes = this._readBytes(2);
+
+        return bytes.readInt16LE(0);
+    }
+
+    readUShort() {
+        const bytes = this._readBytes(2);
+
+        return bytes.readUInt16LE(0);
+    }
+
     readFloat() {
         const bytes = this._readBytes(4);
 

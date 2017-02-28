@@ -165,4 +165,22 @@ describe('Serializer', function() {
             assert.equal(deserializer.readDouble(), -38.5824766);
         });
     });
+
+    describe('writeShort()', function() {
+        it('should encode 16-bit integer', function() {
+            serializer.writeShort(32767);
+
+            deserializer = new Deserializer(serializer.getBuffer());
+            assert.equal(deserializer.readShort(), 32767);
+        });
+    });
+
+    describe('writeUShort()', function() {
+        it('should encode 16-bit unsigned integer', function() {
+            serializer.writeUShort(65535);
+
+            deserializer = new Deserializer(serializer.getBuffer());
+            assert.equal(deserializer.readUShort(), 65535);
+        });
+    });
 });
