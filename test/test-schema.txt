@@ -1,4 +1,4 @@
---- types ---
+--- constructors ---
 Account account -> id: int, username: string, email: string;
 
 Void void;
@@ -10,6 +10,10 @@ Post post -> id: int, author: Account, body: string;
 
 players.Player players.player -> id: int;
 
+players.Player players.playerFull -> id: int, name: string;
+
 players.PlayersList players.playersList -> players: Vector<players.Player>;
 
 players.CreatePlayerResponse players.createPlayer -> online: Bool;
+
+Book book -> id: uint, author: players.player;

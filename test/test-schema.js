@@ -405,4 +405,32 @@ describe('TestSchema', function() {
             });
         }, /invalid type for param "online". expected test.Bool but got test.players.CreatePlayerResponse instead/);
     });
+
+    it('should support direct linking to constructor', function(){
+        const book = new test.Book({
+            id: 23771,
+            author: new test.players.Player({
+                id: 3881
+            })
+        });
+        const bytes = book.serialize();
+
+        assert(test.Book.decode(new Deserializer(bytes)).serialize().equals(bytes));
+    });
+
+    it('should throw if a different than the expected constructor is given', function() {
+        assert.throws(function() {
+            new test.Book({
+                id: 3881,
+                author: new test.BoolTrue()
+            });
+        }, /invalid constructor for param "author". expected test.players.player but got test.boolTrue instead/);
+
+        assert.throws(function() {
+            test.Book.decode(new Deserializer(test.Book.encode({
+                id: 37731,
+                author: test.BoolTrue.encode()
+            })));
+        }, new RegExp(`invalid header for param \"author\". expected ${test.players.Player._id} but got ${test.BoolTrue._id} instead`));
+    });
 });
