@@ -97,9 +97,11 @@ describe('Serializer', function() {
             assert.equal(deserializer.readUInt(), 0xFFFFFFFF);
         });
 
-        it('should throw when try to encode signed integer', function() {
-            assert.throws(function() {
-                serializer.writeUInt(-0xFFFFFFFF);
+        _.forEach([-0xFFFFFFFF, -1, -100, -1000], function(int) {
+            it(`should throw when try to encode ${int} signed integer`, function() {
+                assert.throws(function() {
+                    serializer.writeUInt(int);
+                });
             });
         });
     });
