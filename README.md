@@ -29,12 +29,11 @@ bytes = dl.Account.encode({
     username: 'mark_jb',
 });
 
-assert.deepEqual(decode(bytes), {
-    _: 'dl.account',
+assert.deepEqual(decode(bytes).equals(new dl.Account({
     id: 100,
     email: 'mark@jb.im',
     username: 'mark_jb'
-});
+}).serialize());
 ```
 
 ### Vectors
