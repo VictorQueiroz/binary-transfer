@@ -11,8 +11,7 @@ class Decoder {
     }
 
     decode(bytes) {
-        const header = bytes.readInt32LE(0);
-        const Constructor = this.store.findConstructorFromBuffer(header);
+        const Constructor = this.store.findConstructorFromBuffer(bytes);
 
         if(Constructor) {
             return Constructor.decode(new Deserializer(bytes));

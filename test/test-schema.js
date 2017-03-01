@@ -1,13 +1,17 @@
 import _ from 'lodash';
 import assert from 'assert';
 import { Deserializer } from '../src';
-import { test, Vector } from '../build';
+import { test, Vector, decode } from '../build';
 
 describe('TestSchema', function() {
     let deserializer;
 
     afterEach(() => {
         deserializer = null;
+    });
+
+    it('should decode any type', function() {
+        assert(decode(test.BoolTrue.encode()).serialize().equals(test.BoolTrue.encode()));
     });
 
     describe('Vector', function() {
