@@ -70,10 +70,16 @@ class SchemaBuilder {
                 generics: this.generics,
                 lodashMethods: [
                     'get', 'first', 'last', 'tail',
-                    'head'
+                    'head', 'shuffle'
                 ],
                 nativeArrayMethods: [
-                    'forEach', 'shift', 'pop', 'push'
+                    'forEach', 'shift', 'pop', 'push',
+                    'map', 'join', 'sort', 'concat',
+                    'indexOf', 'slice', 'some', 'reduce',
+                    'reduceRight', 'reverse', 'values',
+                    'keys', 'filter', 'find', 'fill', 'every',
+                    'entries', 'lastIndexOf', 'includes',
+                    'splice'
                 ],
                 binaryTransferPath: this.binaryTransferPath
             }
