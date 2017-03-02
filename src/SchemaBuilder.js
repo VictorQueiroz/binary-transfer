@@ -103,9 +103,15 @@ class SchemaBuilder {
 
     createParam(param, predicate, schema) {
         if(BaseConstructor.isVectorType(param.type)) {
+            let type = param.type.substring(7, param.type.length - 1);
+
+            if(!this.generics.hasOwnProperty(type)) {
+                type = `${schema.name}.${type}`;
+            }
+
             return {
                 key: param.name,
-                type: param.type.substring(7, param.type.length - 1),
+                type,
                 vector: true
             };
         }

@@ -110,19 +110,21 @@ class Vector extends BaseConstructor {
         default:
             let Constructor;
 
-            if(BaseConstructor.isConstructorReference(options.type)) {
-                Constructor = ConstructorStore.findConstructorFromName(options.type);
-            } else if(BaseConstructor.isTypeReference(options.type)) {
-                // get first constructor header
-                Constructor = ConstructorStore.findConstructorFromBuffer(deserializer.buffer.slice(deserializer.offset));
-            } else {
-                this.onError('Invalid type name: %s', options.type);
-                return false;
-            }
+            if(length > 0) {
+                if(BaseConstructor.isConstructorReference(options.type)) {
+                    Constructor = ConstructorStore.findConstructorFromName(options.type);
+                } else if(BaseConstructor.isTypeReference(options.type)) {
+                    // get first constructor header
+                    Constructor = ConstructorStore.findConstructorFromBuffer(deserializer.buffer.slice(deserializer.offset));
+                } else {
+                    this.onError('Invalid type name: %s', options.type);
+                    return false;
+                }
 
-            if(!Constructor) {
-                this.onError('Cannot find constructor for type: %s', options.type);
-                return false;
+                if(!Constructor) {
+                    this.onError('Cannot find constructor for type: %s', options.type);
+                    return false;
+                }
             }
 
             for(let i = 0; i < length; i++) {

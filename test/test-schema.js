@@ -41,6 +41,18 @@ describe('TestSchema', function() {
             }).serialize().equals(vector.serialize()));
         });
 
+        it('should handle empty vectors', function() {
+            const vector = new Vector({
+                type: 'test.Account',
+                items: []
+            });
+
+            assert.ok(Vector.decode({
+                type: 'test.Account',
+                buffer: vector.serialize()
+            }).serialize().equals(vector.serialize()));
+        });
+
         describe('toJSON()', function() {
             it('should transform Vector<int> to JSON', function() {
                 assert.equal(JSON.stringify(new Vector({
@@ -157,6 +169,28 @@ describe('TestSchema', function() {
             result.players.forEach(player => {
                 assert.equal(player.id, 100);
             });
+        });
+
+        it('should validate vector type using schema prefix for non-generic types', function() {
+            new test.players.PlayersList({
+                players: new Vector({
+                    type: 'test.players.Player',
+                    items: [new test.players.Player({
+                        id: 31848
+                    })]
+                })
+            });
+        });
+
+        it('should throw if invalid vector type is given', function() {
+            assert.throws(function() {
+                new test.players.PlayersList({
+                    players: new Vector({
+                        type: 'test.players.player',
+                        items: []
+                    })
+                });
+            }, /invalid vector type for param players. expected test.players.Player but got test.players.player instead/);
         });
     });
 
