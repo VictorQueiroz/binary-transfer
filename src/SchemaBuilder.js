@@ -5,12 +5,49 @@ import BaseConstructor from './BaseConstructor';
 
 class SchemaBuilder {
     constructor(options = {}) {
-        _.defaults(options, {
+        _.defaultsDeep(options, {
+            generics: BaseConstructor.generics,
+            vector: {
+                lodashMethods: [
+                    // array
+                    'chunk', 'compact', 'concat', 'difference',
+                    'differenceBy', 'differenceWith', 'drop',
+                    'dropRight', 'dropRightWhile', 'dropWhile',
+                    'fill', 'findIndex', 'findLastIndex', 'flatten',
+                    'flattenDeep', 'flattenDepth', 'fromPairs', 'first',
+                    'head', 'indexOf', 'initial', 'intersection', 'intersectionBy',
+                    'intersectionWith', 'join', 'last', 'lastIndexOf',
+                    'nth', 'pull', 'pullAll', 'pullAllBy', 'pullAllWith',
+                    'pullAt', 'remove', 'reverse', 'slice', 'sortedIndex',
+                    'sortedIndexBy', 'sortedIndexOf', 'sortedLastIndex',
+                    'sortedLastIndexBy', 'sortedLastIndexOf', 'sortedUniq',
+                    'sortedUniqBy', 'tail', 'take', 'takeRight',
+                    'takeRightWhile', 'takeWhile', 'union', 'unionBy',
+                    'unionWith', 'uniq', 'uniqBy', 'uniqWith', 'unzip',
+                    'unzipWith', 'without', 'xor', 'xorBy', 'xorWith',
+                    'zip', 'zipObject', 'zipObjectDeep', 'zipWith',
+
+                    // collection
+                    'countBy', 'each', 'forEach', 'eachRight', 'forEachRight',
+                    'every', 'filter', 'find', 'findLast', 'flatMap', 'flatMapDeep',
+                    'flatMapDepth', 'forEach', 'forEachRight', 'groupBy', 'includes',
+                    'invokeMap', 'keyBy', 'map', 'orderBy', 'partition', 'reduce',
+                    'reduceRight', 'reject', 'sample', 'sampleSize', 'shuffle',
+                    'size', 'some', 'sortBy'
+                ],
+
+                nativeArrayMethods: [
+                    'shift', 'pop', 'push', 'sort', 'concat',
+                    'values', 'keys', 'entries', 'splice'
+                ]
+            },
+            schemas: [],
             binaryTransferPath: 'binary-transfer'
         });
 
+        this.vector = options.vector;
         this.schemas = options.schemas;
-        this.generics = BaseConstructor.generics;
+        this.generics = options.generics;
         this.binaryTransferPath = options.binaryTransferPath;
     }
 
@@ -68,19 +105,8 @@ class SchemaBuilder {
             template: fs.readFileSync(path.resolve(__dirname, 'templates/vector.template')),
             context: {
                 generics: this.generics,
-                lodashMethods: [
-                    'get', 'first', 'last', 'tail',
-                    'head', 'shuffle'
-                ],
-                nativeArrayMethods: [
-                    'forEach', 'shift', 'pop', 'push',
-                    'map', 'join', 'sort', 'concat',
-                    'indexOf', 'slice', 'some', 'reduce',
-                    'reduceRight', 'reverse', 'values',
-                    'keys', 'filter', 'find', 'fill', 'every',
-                    'entries', 'lastIndexOf', 'includes',
-                    'splice'
-                ],
+                lodashMethods: this.vector.lodashMethods,
+                nativeArrayMethods: this.vector.nativeArrayMethods,
                 binaryTransferPath: this.binaryTransferPath
             }
         });
