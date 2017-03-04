@@ -107,12 +107,41 @@ class SchemaBuilder {
         };
     }
 
+    parseIdentifier(id, ...schemas) {
+        const isTypeReference = BaseConstructor.isTypeReference(id);
+        const isConstructorReference = BaseConstructor.isConstructorReference(id);
+        const compareProperty = (
+            isTypeReference && 'type' ||
+            isConstructorReference && 'name'
+        );
+
+        const ids = [];
+        const schema = schemas.find(schema => {
+            schema.constructors.predicates.forEach(predicate => {
+                if(predicate[compareProperty] == id) {
+                    ids.push(predicate.id);
+                }
+            });
+            return ids.length > 0;
+        });
+
+        return {
+            type: `${schema.name}.${id}`,
+            possibleIds: ids
+        };
+    }
+
     createParam(param, predicate, schema) {
+        const schemas = [
+            schema,
+            ...this.schemas.filter(schema2 => schema != schema2)
+        ];
+
         if(BaseConstructor.isVectorType(param.type)) {
             let type = param.type.substring(7, param.type.length - 1);
 
             if(!this.generics.hasOwnProperty(type)) {
-                type = `${schema.name}.${type}`;
+                type = this.parseIdentifier(type, ...schemas).type;
             }
 
             return {
@@ -131,35 +160,22 @@ class SchemaBuilder {
             };
         }
 
-        const possibleIds = [];
-
+        const id = this.parseIdentifier(param.type, ...schemas);
 
         if(BaseConstructor.isTypeReference(param.type)) {
-            schema.constructors.predicates.map(predicate => {
-                if(predicate.type == param.type) {
-                    possibleIds.push(predicate.id);
-                }
-            });
-
             return {
                 key: param.name,
-                type: `${schema.name}.${param.type}`,
-                possibleIds: possibleIds,
+                type: id.type,
+                possibleIds: id.possibleIds,
                 typeReference: true
             };
         }
 
         if(BaseConstructor.isConstructorReference(param.type)) {
-            schema.constructors.predicates.map(predicate => {
-                if(predicate.name == param.type) {
-                    possibleIds.push(predicate.id);
-                }
-            });
-
             return {
                 key: param.name,
-                type: `${schema.name}.${param.type}`,
-                possibleIds: possibleIds,
+                type: id.type,
+                possibleIds: id.possibleIds,
                 constructorReference: true
             };
         }
