@@ -312,7 +312,7 @@ describe('TestSchema', function() {
         });
 
         items.forEach((n, i) => {
-            assert.equal(vector.get(i), n);
+            assert.equal(vector.nth(i), n);
         });
     });
 
@@ -403,7 +403,7 @@ describe('TestSchema', function() {
         });
 
         items.forEach((item, i) => {
-            assert.equal(vector.get(i), item);
+            assert.equal(vector.nth(i), item);
         });
     });
 
