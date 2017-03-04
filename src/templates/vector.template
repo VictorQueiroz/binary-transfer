@@ -21,7 +21,7 @@ class Vector extends BaseConstructor {
 
     {% for method in nativeArrayMethods %}
     {{method}}(...args) {
-        return Array.prototype['{{method}}'].call(this.items, ...args);
+        return this.items['{{method}}'](...args);
     }
     {% endfor %}
 
