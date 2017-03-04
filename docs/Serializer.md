@@ -41,7 +41,7 @@ For that matters, a `Constructor` have the following characteristics:
 - A constructor must have a uint 32-bit header
 - A constructor name must start with uppercase in the scheme definition
 
-#### Vector
+#### [Vector](https://github.com/VictorQueiroz/binary-transfer/blob/master/docs/Vector.md)
 
 The only non-generic types defined by the library level is a Vector. You can define it using the following syntax on your scheme:
 
