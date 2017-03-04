@@ -22,7 +22,7 @@ A Type is a term to define the `Constructor` type. For example:
 User user -> id: uint, name: string;
 ```
 
-In the example above we have a constructor named `user`. I can say his type is `User`. A type cannot exist without a `Constructor`.
+In the example above we have a constructor named `user`. We can say his type is `User`. A type cannot exist without a `Constructor`.
 
 Characteristics
 
