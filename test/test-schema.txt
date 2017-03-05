@@ -17,3 +17,5 @@ players.PlayersList players.playersList -> players: Vector<players.Player>;
 players.CreatePlayerResponse players.createPlayer -> online: Bool;
 
 Book book -> id: uint, author: players.player;
+
+userStatus : UserStatus -> online: bool;

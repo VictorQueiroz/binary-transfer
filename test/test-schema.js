@@ -208,6 +208,14 @@ describe('TestSchema', function() {
                 });
             }, /invalid vector type for param players. expected test.players.Player but got test.players.player instead/);
         });
+
+        it('should throw for invalid bool type', function() {
+            assert.throws(function() {
+                new test.UserStatus({
+                    online: 0
+                });
+            }, /Invalid type for param \"online\"\. expected type boolean but got number instead. Check constructor test\.userStatus/);
+        });
     });
 
     describe('static: decode()', function() {
@@ -447,7 +455,7 @@ describe('TestSchema', function() {
 
         assert.throws(function() {
             test.Post.decode(new Deserializer(bytes));
-        }, /invalid header for param \"author\". expected 3133324573 but got 460212315 instead/);
+        }, /invalid header for param \"author\". expected 186715902 but got 460212315 instead/);
     });
 
     it('should throw if give an invalid param type is given', function() {

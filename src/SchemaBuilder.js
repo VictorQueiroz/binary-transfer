@@ -38,7 +38,7 @@ class SchemaBuilder {
 
                 nativeArrayMethods: [
                     'shift', 'pop', 'push', 'sort', 'concat',
-                    'values', 'keys', 'entries', 'splice'
+                    'values', 'keys', 'entries', 'splice', 'unshift'
                 ]
             },
             schemas: [],
