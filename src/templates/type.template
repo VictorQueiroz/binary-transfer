@@ -58,6 +58,15 @@ class {{constructorName}} extends BaseConstructor {
         this._params = options._params;
     }
 
+    _expect(property, value, type) {
+        this.onError('Invalid type for param "%s". expected type %s but got %s instead. Check constructor %s',
+            property,
+            type,
+            typeof value,
+            this._name
+        );
+    }
+
     instanceOf(name) {
         return this._name == name;
     }

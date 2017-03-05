@@ -90,14 +90,6 @@ class {{constructorName}} extends {{ typeFileData.context.constructorName }} {
         }
     }
 
-    _expectProperty(property, value, type) {
-        this.onError('Invalid type for param "%s". expected type %s but got %s instead',
-            property,
-            type,
-            typeof value
-        );
-    }
-
     _validateGenericProperty(property, value, type) {
         switch(type) {
         case 'int':
