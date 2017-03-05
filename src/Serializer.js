@@ -50,6 +50,13 @@ class Serializer {
         this.addBuffer(buffer);
     }
 
+    writeBool(value) {
+        const buffer = Buffer.allocUnsafe(1);
+        buffer.writeUInt8(value ? 1 : 0);
+
+        this.addBuffer(buffer);
+    }
+
     _formatLong(long, unsigned) {
         if(isNumber(long)) {
             return this._formatLong(Long.fromNumber(long, unsigned, 10));

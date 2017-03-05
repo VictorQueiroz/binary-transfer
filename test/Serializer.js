@@ -41,6 +41,22 @@ describe('Serializer', function() {
         });
     });
 
+    describe('writeBool()', function() {
+        it('should encode true value', function() {
+            serializer.writeBool(true);
+
+            deserializer = new Deserializer(serializer.getBuffer());
+            assert.equal(deserializer.readBool(), true);
+        });
+
+        it('should encode false value', function() {
+            serializer.writeBool(false);
+
+            deserializer = new Deserializer(serializer.getBuffer());
+            assert.equal(deserializer.readBool(), false);
+        });
+    });
+
     describe('writeLong()', function() {
         it('should encode native integer into long int', function() {
             serializer.writeLong(255);

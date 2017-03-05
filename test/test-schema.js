@@ -14,6 +14,22 @@ describe('TestSchema', function() {
         assert(decode(test.BoolTrue.encode()).serialize().equals(test.BoolTrue.encode()));
     });
 
+    it('should support bool = true param', function() {
+        const userStatus = test.UserStatus.decode(new Deserializer(test.UserStatus.encode({
+            online: true
+        })));
+
+        assert.equal(userStatus.online, true);
+    });
+
+    it('should support bool = true param', function() {
+        const userStatus = test.UserStatus.decode(new Deserializer(test.UserStatus.encode({
+            online: false
+        })));
+
+        assert.equal(userStatus.online, false);
+    });
+
     describe('Vector', function() {
         it('should deserialize vectors', function() {
             const vector = new Vector({

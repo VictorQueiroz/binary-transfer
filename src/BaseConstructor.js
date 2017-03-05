@@ -4,6 +4,7 @@ import { createMessage } from './utils';
 class BaseConstructor {
     static generics = {
         int: 'Int',
+        bool: 'Bool',
         long: 'Long',
         uint: 'UInt',
         short: 'Short',

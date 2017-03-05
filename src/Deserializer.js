@@ -48,6 +48,17 @@ class Deserializer {
         return bytes.readDoubleLE(0);
     }
 
+    readBool() {
+        const bytes = this._readBytes(1);
+        const bool = bytes.readUInt8(0);
+
+        if(bool == 1) {
+            return true;
+        }
+
+        return false;
+    }
+
     readString() {
         let sUTF8 = '';
         const bytes = this.readBytes();
