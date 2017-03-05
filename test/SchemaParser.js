@@ -1,6 +1,6 @@
 import fs from 'fs';
 import assert from 'assert';
-import {SchemaParser} from '../src';
+import {language} from '../src';
 
 describe('SchemaParser', function() {
     let testSchema,
@@ -8,7 +8,7 @@ describe('SchemaParser', function() {
 
     beforeEach(() => {
         testSchema = fs.readFileSync('./test/test-schema.txt');
-        schemaParser = new SchemaParser();
+        schemaParser = new language.SchemaParser();
     });
 
     it('should parse schema constructors', function() {
@@ -17,7 +17,7 @@ describe('SchemaParser', function() {
             Account account -> id: int, username: string, email: string;
             Void void;
         `), [{
-            id: 3133324573,
+            id: 186715902,
             type: 'Account',
             params: [{
                 type: 'int',
@@ -31,7 +31,7 @@ describe('SchemaParser', function() {
             }],
             name: 'account'
         }, {
-            id: 1363145673,
+            id: 2178958158,
             type: 'Void',
             params: [],
             name: 'void'
@@ -40,7 +40,7 @@ describe('SchemaParser', function() {
 
     it('should parse namespaced constructors', function() {
         assert.deepEqual(schemaParser.parse('user.User user.userRegular -> id: int;'), [{
-            id: 1729710926,
+            id: 4060771189,
             type: 'user.User',
             params: [{
                 type: 'int',
