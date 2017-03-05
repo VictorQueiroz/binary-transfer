@@ -5,9 +5,9 @@ const path = require('path');
 const babel = require('babel-core');
 const mkdirp = require('mkdirp');
 const nunjucks = require('nunjucks');
-const { SchemaParser, SchemaBuilder } = require('./src');
+const { language, SchemaBuilder } = require('./src');
 
-const schema = new SchemaParser().parse(fs.readFileSync('./test/test-schema.txt'));
+const schema = new language.SchemaParser().parse(fs.readFileSync('./test/test-schema.txt'));
 const builder = new SchemaBuilder({
     schemas: [{
         name: 'test',

@@ -1,5 +1,23 @@
 # SchemaBuilder
 
+### Schema Language
+
+Schema language is very simple. You can use short body constructor definition:
+```
+User user -> id: uint, name: string;
+```
+
+And you can use normal constructor definition:
+```
+user : User {
+	id: uint;
+	name: string;
+	actions: Vector<UserAction>
+}
+
+userActionStartedLiveRecording : UserAction -> date: uint;
+```
+
 ### Building your schema
 
 Schema syntax is "parsed" by `SchemaParser` and then `SchemaBuilder`. This means that there's nothing stopping you to create your own `SchemaParser` as long as you give `SchemaBuilder` the right data.
