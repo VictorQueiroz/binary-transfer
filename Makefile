@@ -24,6 +24,8 @@ test: build_test_schema benchmark
 	--require babel-register
 
 release: build_test_schema test
-	./scripts/create-release.sh
+	rm -rvf lib/
+	./node_modules/.bin/babel src/ -d lib/
+	cp -rv src/templates lib/templates
 
 .PHONY: release test build_test_schema tdd
