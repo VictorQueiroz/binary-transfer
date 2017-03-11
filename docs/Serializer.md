@@ -3,6 +3,7 @@
 ### Generic types
 
 - int (32-bit signed integer, range: -2,147,483,648 through 2,147,483,647)
+- bool (8-bit, value should be true or false javascript boolean)
 - uint (32-bit unsigned integer, range: 0 through 4,294,967,295)
 - long (64-bit signed integer, range: -9,223,372,036,854,775,808 through 9,223,372,036,854,775,807)
 - short (16-bit signed integer, range: -32,768 through 32,767)
@@ -28,7 +29,7 @@ Characteristics
 
 - A type can have many constructors
 - A type must be linked to at least one constructor
-- A type name must start with lowercase in the scheme definition
+- A type name must start with uppercase in the scheme definition
 
 #### Constructor
 
@@ -39,7 +40,7 @@ For that matters, a `Constructor` have the following characteristics:
 - A constructor can have params
 - A constructor must have a type
 - A constructor must have a uint 32-bit header
-- A constructor name must start with uppercase in the scheme definition
+- A constructor name must start with lowercase in the scheme definition
 
 #### [Vector](https://github.com/VictorQueiroz/binary-transfer/blob/master/docs/Vector.md)
 
