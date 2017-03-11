@@ -18,6 +18,10 @@ user : User {
 userActionStartedLiveRecording : UserAction -> date: uint;
 ```
 
+### What is the difference between `User user` and `user : User`?
+
+None, both approaches have the same result, but I particularly prefer `user : User` because it remembers me of TypeScript syntax.
+
 ### Building your schema
 
 Schema syntax is "parsed" by `SchemaParser` and then `SchemaBuilder`. This means that there's nothing stopping you to create your own `SchemaParser` as long as you give `SchemaBuilder` the right data.
