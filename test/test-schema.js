@@ -14,6 +14,15 @@ describe('TestSchema', function() {
         assert(decode(test.BoolTrue.encode()).serialize().equals(test.BoolTrue.encode()));
     });
 
+    it('should not allow unexpected properties', function() {
+        assert.throws(function() {
+            new test.UserStatus({
+                online: true,
+                a: 1
+            });
+        });
+    });
+
     it('should support bool = true param', function() {
         const userStatus = test.UserStatus.decode(new Deserializer(test.UserStatus.encode({
             online: true
