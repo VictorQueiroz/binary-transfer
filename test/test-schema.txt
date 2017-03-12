@@ -19,3 +19,33 @@ players.CreatePlayerResponse players.createPlayer -> online: Bool;
 Book book -> id: uint, author: players.player;
 
 userStatus : UserStatus -> online: bool;
+
+user : User {
+    id: uint;
+    bio: string;
+    posts: Vector<Post>;
+    lastIp: string;
+    status: UserStatus;
+    accounts: Vector<Account>;
+    activeSessions: Vector<Session>;
+    downloadRegisters: Vector<DownloadRegister>;
+}
+
+session : Session {
+    location: GeoPoint;
+}
+
+geoPoint : GeoPoint {
+    latitude: double;
+    longitude: double;
+}
+
+downloadRegister : DownloadRegister {
+    date: uint;
+    location: GeoPoint;
+}
+
+msgEncrypted : Msg {
+    data: bytes;
+    authCode: bytes;
+}
