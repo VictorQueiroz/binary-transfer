@@ -2,7 +2,11 @@ import { deepEqual } from 'assert';
 import { AST, Syntax } from '../../src/language';
 
 describe('AST', function() {
-    const ast = new AST();
+    let ast;
+
+    beforeEach(() => {
+        ast = new AST();
+    });
 
     describe('ast()', function() {
         it('should deal with namespaces', function() {
