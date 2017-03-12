@@ -1,23 +1,28 @@
 import { Token } from './Token';
-import { toArray } from 'lodash';
 import { Character } from './Character';
 import { createMessage } from '../utils';
+import { defaults, toArray } from 'lodash';
 
 class Lexer {
-    constructor(options) {
-        this.text = options && options.text || '';
-        this.index = 0;
-        this.tokens = [];
-        this.length = options && options.text && options.text.length || 0;
+    constructor(options = {}) {
+        defaults(options, {
+            text: '',
+            index: 0,
+            tokens: []
+        });
+
+        this.text = options.text;
+        this.index = options.index;
+        this.tokens = options.tokens;
+        this.length = this.text.length;
     }
 
-    lex(text) {
-        this.tokens.splice(0, this.tokens.length);
-        if(text) {
-            this.text = text;
-            this.length = text.length;
-        }
+    lex(text = '') {
+        this.text = text;
         this.index = 0;
+        this.tokens = [];
+        this.length = this.text.length;
+
         return this.scan();
     }
 
@@ -53,6 +58,10 @@ class Lexer {
             return this.nextToken(start);
         }
 
+        if(Character.isDecimalDigit(ch)) {
+            return this.scanNumericLiteral();
+        }
+
         if(Character.isIdentifierPart(ch)) {
             return this.scanIdentifier();
         }
@@ -66,6 +75,72 @@ class Lexer {
 
     eof() {
         return this.index >= this.length;
+    }
+
+    scanNumericLiteral() {
+        let num = '';
+
+        let ch = this.text.charCodeAt(this.index);
+        const start = this.index;
+
+        // 0
+        if(ch == 48) {
+            ch = this.text.charCodeAt(this.index + 1);
+
+            // x
+            if(ch == 120) {
+                return this.scanHexLiteral();
+            }
+        }
+
+        while(Character.isDecimalDigit(this.text.charCodeAt(this.index))) {
+            num += this.text[this.index++];
+        }
+
+        ch = this.text[this.index];
+
+        if(ch == '.') {
+            num += this.text[this.index++];
+
+            while(Character.isDecimalDigit(this.text.charCodeAt(this.index))) {
+                num += this.text[this.index++];
+            }
+        }
+
+        return {
+            type: Token.NumericLiteral,
+            value: parseFloat(num),
+            end: this.index,
+            start
+        };
+    }
+
+    // https://tc39.github.io/ecma262/#sec-literals-numeric-literals
+    scanHexLiteral() {
+        let num = '0x';
+        const start = this.index;
+
+        // 0x
+        this.index += 2;
+
+        while(!this.eof()) {
+            if(Character.isHexDigit(this.text.charCodeAt(this.index))) {
+                num += this.text[this.index++];
+                continue;
+            }
+            break;
+        }
+
+        if(num.length == 0 || Character.isIdentifierStart(this.text.charCodeAt(this.index))) {
+            this.throwError('unexpected token at %s', this.index);
+        }
+
+        return {
+            type: Token.NumericLiteral,
+            start,
+            end: this.index,
+            value: parseInt(num, 16)
+        };
     }
 
     scanStringLiteral(start = this.index, str = '', quote = this.text[this.index++]) {

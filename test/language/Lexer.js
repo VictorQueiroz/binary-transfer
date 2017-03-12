@@ -1,15 +1,67 @@
+import _ from 'lodash';
+import crypto from 'crypto';
 import { deepEqual } from 'assert';
 import { Lexer, Token } from '../../src/language';
 
 describe('Lexer', function() {
+    let lexer;
+
+    beforeEach(() => {
+        lexer = new Lexer();
+    });
+
+    describe('scanNumericLiteral()', function() {
+        const randomHex = new Array(32);
+
+        for(let i = 0; i < randomHex.length; i++) {
+            randomHex[i] = '0x' +  crypto.randomBytes(8).toString('hex');
+        }
+
+        _.forEach(randomHex, function(hex) {
+            it(`should scan ${hex} integer`, function() {
+                deepEqual(lexer.lex(hex), [{
+                    end: hex.length,
+                    type: Token.NumericLiteral,
+                    start: 0,
+                    value: parseInt(hex, 16)
+                }, {
+                    end: hex.length,
+                    type: Token.EOF,
+                    start: hex.length
+                }]);
+            });
+        });
+
+        it('should scan simple numeric literal', function() {
+            deepEqual(lexer.lex('9999999'), [{
+                end: 7,
+                type: Token.NumericLiteral,
+                start: 0,
+                value: 9999999
+            }, {
+                end: 7,
+                type: Token.EOF,
+                start: 7
+            }]);
+        });
+
+        it('should scan numeric floating point literals', function() {
+            deepEqual(lexer.lex('31.3193'), [{
+                end: 7,
+                type: Token.NumericLiteral,
+                start: 0,
+                value: 31.3193
+            }, {
+                end: 7,
+                type: Token.EOF,
+                start: 7
+            }]);
+        });
+    });
+
     describe('scanIdentifier()', function() {
         it('should scan identifier', function() {
-            const l = new Lexer({
-                text: 'users.getUsers users.UsersList { int offset; }'
-            });
-            const tokens = l.lex();
-
-            deepEqual(tokens, [{
+            deepEqual(lexer.lex('users.getUsers users.UsersList { int offset; }'), [{
                 type: Token.Identifier,
                 value: 'users',
                 start: 0,
@@ -74,10 +126,7 @@ describe('Lexer', function() {
 
     describe('scanStringLiteral()', function() {
         it('should scan literal string', function() {
-            const l = new Lexer({
-                text: '"literal string"'
-            });
-            deepEqual(l.lex(), [{
+            deepEqual(lexer.lex('"literal string"'), [{
                 type: Token.StringLiteral,
                 value: 'literal string',
                 start: 0,
