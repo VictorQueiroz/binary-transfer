@@ -141,7 +141,10 @@ describe('AST', function() {
                 Player player -> id: uint, name: string;
             `);
 
-            // console.log(schema);
+            deepEqual(schema, ast.ast(`player : Player {
+                id: uint;
+                name: string;
+            }`));
         });
 
         it('should parse empty body definitions', function() {
