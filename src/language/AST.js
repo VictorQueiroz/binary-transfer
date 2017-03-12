@@ -200,15 +200,20 @@ class AST {
         };
         this.expect(':');
 
-        const id = this.peek();
-
-        if(id.type == Token.Identifier && (id.value == 'Vector' || id.value == 'vector')) {
-            ast.returnType = this.vector();
-        } else {
-            ast.returnType = this.typeIdentifier();
-        }
+        ast.returnType = this.returnType();
 
         return ast;
+    }
+
+    returnType() {
+        const id = this.peek().value;
+        switch(id) {
+        case 'Vector':
+            return this.vector();
+        }
+
+        return this.typeIdentifier();
+    }
     }
 
     integer() {
