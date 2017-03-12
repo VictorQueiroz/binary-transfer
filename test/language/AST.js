@@ -130,6 +130,12 @@ describe('AST', function() {
             });
         });
 
+        it('should support short body without comma at the end', function() {
+            deepEqual(ast.ast('player : Player -> id: uint'), ast.ast(`
+                player : Player -> id: uint;
+            `));
+        });
+
         it('should support short body type declaration', function() {
             const schema = ast.ast(`
                 Player player -> id: uint, name: string;
