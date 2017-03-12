@@ -164,9 +164,13 @@ class AST {
 
         do {
             body.push(this.typeProperty());
-        } while(this.expect(','));
+        } while(!this.eof() && this.expect(','));
 
-        this.consume(';');
+        if(this.eof()) {
+            return body;
+        }
+
+        this.expect(';');
 
         return body;
     }
