@@ -50,7 +50,7 @@ class AST {
 
     consume(m1) {
         if(this.tokens.length === 0) {
-            this.throwError('Unexpected end of expression "%s"', this.peek().value);
+            this.throwError('Unexpected end of expression "%s". Expected %s', this.peek().value, m1);
         }
 
         const token = this.expect(m1);
@@ -108,7 +108,7 @@ class AST {
 
     typePrimary() {
         if(this.peek().type != Token.Identifier) {
-            this.throwError('Expected %s, but got %s instead', Token.Identifier, this.peek().type);
+            this.throwError('unexpected token %s at column %s', this.peek().value, this.peek().start);
             return false;
         }
 
