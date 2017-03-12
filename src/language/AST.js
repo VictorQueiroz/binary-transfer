@@ -214,7 +214,6 @@ class AST {
 
         return this.typeIdentifier();
     }
-    }
 
     integer() {
         if(this.peek().type != Token.NumericLiteral) {
