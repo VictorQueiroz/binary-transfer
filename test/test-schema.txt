@@ -1,16 +1,16 @@
 --- constructors ---
-Account account -> id: int, username: string, email: string;
+Account account -> id: uint, username: string, email: string;
 
 Void void;
 
 Bool boolTrue;
 Bool boolFalse;
 
-Post post -> id: int, author: Account, body: string;
+Post post -> id: uint, author: Account, body: string;
 
-players.Player players.player -> id: int;
+players.Player players.player -> id: uint;
 
-players.Player players.playerFull -> id: int, name: string;
+players.Player players.playerFull -> id: uint, name: string;
 
 players.PlayersList players.playersList -> players: Vector<players.Player>;
 
