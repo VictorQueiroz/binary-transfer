@@ -17,7 +17,7 @@ class AST {
     }
 
     eof() {
-        return this.peek().type == Token.EOF;
+        return this.tokens[0].type == Token.EOF;
     }
 
     schema() {
@@ -68,7 +68,7 @@ class AST {
     }
 
     peekAhead(i, m1, m2, m3, m4) {
-        if(this.tokens.length > i) {
+        if(!this.eof() && this.tokens.length > i) {
             const emptyMatches = (!m1 && !m2 && !m3 && !m4);
             const token = this.tokens[i];
             const t = token.value;
