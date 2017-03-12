@@ -234,7 +234,6 @@ class AST {
 
             return name;
         }
-        }
 
         return this.typeIdentifier();
     }
