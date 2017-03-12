@@ -20,10 +20,11 @@ class AST {
         return this.peek().type == Token.EOF;
     }
 
-    schema(body = []) {
-        if(!this.eof()) {
+    schema() {
+        const body = [];
+
+        while(!this.eof()) {
             body.push(this.comment());
-            return this.schema(body);
         }
 
         return {
@@ -210,15 +211,27 @@ class AST {
         return ast;
     }
 
-    typeBody(body = []) {
-        if(this.expect('}')) {
-            return body;
+    integer() {
+        if(this.peek().type != Token.NumericLiteral) {
+            this.throwError('expected %s but got %s instead', Token.NumericLiteral, this.peek().type);
+            return false;
         }
 
-        body.push(this.typeProperty());
-        this.consume(';');
+        return {
+            type: Syntax.Literal,
+            value: this.consume().value
+        };
+    }
 
-        return this.typeBody(body);
+    typeBody() {
+        const body = [];
+
+        while(!this.expect('}')) {
+            body.push(this.typeProperty());
+            this.consume(';');
+        }
+
+        return body;
     }
 }
 
