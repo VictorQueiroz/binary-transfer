@@ -17,6 +17,11 @@ class BaseConstructor {
         double: 'Double'
     };
 
+    static supportStrictSize = [
+        'bytes',
+        'string'
+    ];
+
     static validate(header, ids) {
         let found = false;
 
@@ -32,6 +37,10 @@ class BaseConstructor {
         }
 
         return found;
+    }
+
+    static allowStrictSize(type) {
+        return this.supportStrictSize.indexOf(type) > -1;
     }
 
     static isGenericType(type) {

@@ -7,5 +7,6 @@ export const Syntax = {
     CommentBlock: 'CommentBlock',
     TypeProperty: 'TypeProperty',
     TypeIdentifier: 'TypeIdentifier',
+    StrictSizeType: 'StrictSizeType',
     TypeDeclaration: 'TypeDeclaration'
 };

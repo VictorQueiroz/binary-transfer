@@ -1,5 +1,6 @@
 import { Syntax } from './Syntax';
 import { toArray } from 'lodash';
+import BaseConstructor from '../BaseConstructor';
 import { Lexer, Token } from './Lexer';
 import { createMessage } from '../utils';
 
@@ -112,6 +113,7 @@ class AST {
             return false;
         }
 
+
         return this.identifier();
     }
 
@@ -141,7 +143,7 @@ class AST {
         } else {
             ctor = this.typeIdentifier();
         }
-                
+
         const type = {
             type: Syntax.TypeDeclaration,
             ctor,
@@ -196,6 +198,7 @@ class AST {
             key: this.identifier(),
             type: Syntax.TypeProperty,
         };
+
         this.expect(':');
 
         ast.returnType = this.returnType();
@@ -206,12 +209,38 @@ class AST {
     returnType() {
         const id = this.peek().value;
 
+        if(!BaseConstructor.allowStrictSize(id) && BaseConstructor.isGenericType(id)) {
+            return this.genericType();
+        }
+
         switch(id) {
         case 'Vector':
             return this.vector();
+        case 'string':
+        case 'bytes': {
+            const name = this.identifier();
+
+            if(this.expect('[')) {
+                const size = this.integer();
+
+                this.consume(']');
+
+                return {
+                    type: Syntax.StrictSizeType,
+                    name,
+                    size
+                };
+            }
+
+            return name;
+        }
         }
 
         return this.typeIdentifier();
+    }
+
+    genericType() {
+        return this.identifier();
     }
 
     integer() {

@@ -130,6 +130,41 @@ describe('AST', function() {
             });
         });
 
+        it('should support strict size bytes', function() {
+            deepEqual(ast.ast('msg : Msg -> signature: bytes[1024]'), {
+                type: Syntax.Schema,
+                body: [{
+                    type: Syntax.TypeDeclaration,
+                    ctor: {
+                        type: Syntax.Identifier,
+                        name: 'msg'
+                    },
+                    name: {
+                        type: Syntax.Identifier,
+                        name: 'Msg'
+                    },
+                    body: [{
+                        type: Syntax.TypeProperty,
+                        key: {
+                            type: Syntax.Identifier,
+                            name: 'signature'
+                        },
+                        returnType: {
+                            name: {
+                                type: Syntax.Identifier,
+                                name: 'bytes'
+                            },
+                            size: {
+                                type: Syntax.Literal,
+                                value: 1024
+                            },
+                            type: Syntax.StrictSizeType
+                        }
+                    }]
+                }]
+            });
+        });
+
         it('should support short body without comma at the end', function() {
             deepEqual(ast.ast('player : Player -> id: uint'), ast.ast(`
                 player : Player -> id: uint;
