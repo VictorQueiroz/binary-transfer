@@ -179,7 +179,7 @@ class AST {
     vector() {
         const id = this.identifier();
 
-        if(id.name != 'Vector' && id.name != 'vector') {
+        if(id.name != 'Vector') {
             this.throwError('Expect %s but got %s', 'vector', id.name);
         }
 
