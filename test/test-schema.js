@@ -464,7 +464,7 @@ describe('TestSchema', function() {
 
         assert.throws(function() {
             test.Post.decode(new Deserializer(bytes));
-        }, /invalid header for param \"author\". expected 186715902 but got 460212315 instead/);
+        }, /invalid header for param \"author\". expected 956573801 but got 460212315 instead/);
     });
 
     it('should throw if give an invalid param type is given', function() {
