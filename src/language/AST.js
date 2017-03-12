@@ -167,11 +167,9 @@ class AST {
             body.push(this.typeProperty());
         } while(!this.eof() && this.expect(','));
 
-        if(this.eof()) {
-            return body;
+        if(!this.eof()) {
+            this.expect(';');
         }
-
-        this.expect(';');
 
         return body;
     }
@@ -207,6 +205,7 @@ class AST {
 
     returnType() {
         const id = this.peek().value;
+
         switch(id) {
         case 'Vector':
             return this.vector();
