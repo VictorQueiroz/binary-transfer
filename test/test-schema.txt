@@ -47,7 +47,7 @@ downloadRegister : DownloadRegister {
 
 msgEncrypted : Msg {
     data: bytes;
-    authCode: bytes;
+    authCode: bytes[1024];
 }
 
 msg : Msg {
