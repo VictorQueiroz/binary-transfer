@@ -43,14 +43,12 @@ class {{constructorName}} extends {{ typeFileData.context.constructorName }} {
     }
 
     _validateVector(property, value, type) {
-        if(value.type == type) {
-            return true;
+        if(value.type != type) {
+            this.onError('Invalid vector type for param %s. expected %s but got %s instead',
+                property,
+                type,
+                value.type);
         }
-
-        this.onError('invalid vector type for param %s. expected %s but got %s instead',
-            property,
-            type,
-            value.type);
     }
 
     _validateProperty(property, value, type) {
