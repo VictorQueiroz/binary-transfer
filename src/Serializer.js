@@ -77,14 +77,20 @@ class Serializer {
 
     writeULong(i) {
         const long = this._formatLong(i, true);
-        const buffer = Buffer.from(long.toBytesLE());
+        let buffer = Buffer.from(long.toBytesLE());
+
+        buffer = utils.trimBytesLE(buffer, 8);
+        buffer = utils.addPaddingLE(buffer, 8);
 
         this.addBuffer(buffer);
     }
 
     writeLong(i) {
         const long = this._formatLong(i, false);
-        const buffer = Buffer.from(long.toBytesLE());
+        let buffer = Buffer.from(long.toBytesLE());
+
+        buffer = utils.trimBytesLE(buffer, 8);
+        buffer = utils.addPaddingLE(buffer, 8);
 
         this.addBuffer(buffer);
     }
