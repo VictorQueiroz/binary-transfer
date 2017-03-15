@@ -215,7 +215,7 @@ describe('TestSchema', function() {
                         items: []
                     })
                 });
-            }, /invalid vector type for param players. expected test.players.Player but got test.players.player instead/);
+            }, /Invalid vector type for param players. expected test.players.Player but got test.players.player instead/);
         });
 
         it('should throw for invalid bool type', function() {
