@@ -59,12 +59,12 @@ class Vector extends BaseConstructor {
 
         switch(this.type) {
         {% for type, method in generics %}
-        case '{{ type }}':
+        case '{{ type }}': {% endfor %} {
             for(let i = 0; i < items.length; i++) {
                 items[i] = this.items[i];
             }
             break;
-        {% endfor %}
+        }
         default:
             for(let i = 0; i < items.length; i++) {
                 items[i] = this.items[i].serialize();
