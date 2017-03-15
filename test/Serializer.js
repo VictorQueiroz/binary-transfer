@@ -95,6 +95,13 @@ describe('Serializer', function() {
             assert.equal(deserializer.readLong(), '0x00000000000000ff');
         });
 
+        it('should trim zeros', function() {
+            serializer.writeLong('0x000f');
+
+            deserializer = new Deserializer(serializer.getBuffer());
+            assert.equal(deserializer.readLong(), '0x000000000000000f');
+        });
+
         it('should not allow invalid hex value', function() {
             assert.throws(function() {
                 serializer.writeLong('0xf');
@@ -108,6 +115,20 @@ describe('Serializer', function() {
 
             deserializer = new Deserializer(serializer.getBuffer());
             assert.equal(deserializer.readULong(), '0x' + Long.MAX_UNSIGNED_VALUE.toString(16));
+        });
+
+        it('should encode 0x0620cf0bffdd066b', function() {
+            serializer.writeULong('0x0620cf0bffdd066b');
+
+            deserializer = new Deserializer(serializer.getBuffer());
+            assert.equal(deserializer.readULong(), '0x0620cf0bffdd066b');
+        });
+
+        it('should return long in BE', function() {
+            serializer.writeULong(441580413926573700);
+
+            deserializer = new Deserializer(serializer.getBuffer());
+            assert.equal(deserializer.readULong(), '0x0620cf0bffdd0680');
         });
     });
 
