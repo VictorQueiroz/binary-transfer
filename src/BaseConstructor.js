@@ -121,7 +121,7 @@ class BaseConstructor {
             if(_.isNumber(value) || Long.isLong(value)) {
                 break;
             }
-            if(_.isString(value)) {
+            if(_.isString(value) && value != '') {
                 let padding = value.substring(0, 2);
                 const paddingLength = value.length % 2;
 
