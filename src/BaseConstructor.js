@@ -98,6 +98,8 @@ class BaseConstructor {
         case 'int':
         case 'uint':
         case 'float':
+        case 'short':
+        case 'ushort':
         case 'double':
             if(_.isNumber(value)) {
                 break;
