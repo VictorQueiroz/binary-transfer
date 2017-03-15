@@ -17,7 +17,7 @@ class Decoder {
             return Constructor.decode(new Deserializer(bytes));
         }
 
-        this.onError('no constructor found for header: %s', header);
+        this.onError('no constructor found for header: %s', bytes.readUInt32LE(0));
     }
 }
 
