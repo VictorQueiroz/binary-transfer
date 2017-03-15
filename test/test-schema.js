@@ -103,6 +103,62 @@ describe('TestSchema', function() {
                 }]));
             });
         });
+
+        describe('generic', function() {
+            const wrongIntegerVector = [1,2,3,4,''];
+            const generics = {
+                int: wrongIntegerVector,
+                uint: wrongIntegerVector,
+                bytes: [
+                    Buffer.alloc(2),
+                    Buffer.alloc(4),
+                    Buffer.alloc(8),
+                    Buffer.alloc(16),
+                    ''
+                ],
+                bool: [true, false, true, false, 1],
+                long: wrongIntegerVector,
+                ulong: wrongIntegerVector,
+                short: wrongIntegerVector,
+                float: wrongIntegerVector,
+                ushort: wrongIntegerVector,
+                string: ['a','b','c','d',1],
+                double: wrongIntegerVector,
+            };
+            _.forEach(generics, (items, type) => {
+                describe('type = ' + type, function() {
+                    let vector;
+
+                    afterEach(() => {
+                        vector = null;
+                    });
+
+                    it(`should validate ${type} vector items when execute serialize`, function() {
+                        assert.throws(function() {
+                            vector = new Vector({
+                                type: type,
+                                items: []
+                            });
+
+                            for(let i = 0; i < items.length; i++) {
+                                vector.push(items[i]);
+                            }
+
+                            vector.serialize();
+                        }, /Invalid type for vector index \"4\"/);
+                    });
+
+                    it(`should validate ${type} vector items on constructor instantiation`, function() {
+                        assert.throws(function() {
+                            new Vector({
+                                type: type,
+                                items: items
+                            });
+                        }, /Invalid type for vector index \"4\"/);
+                    });
+                });
+            })
+        });
     });
 
     describe('toJSON()', function() {

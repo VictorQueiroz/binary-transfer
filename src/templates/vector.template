@@ -17,6 +17,8 @@ class Vector extends BaseConstructor {
         this._name = 'vector';
         this.type = options.type;
         this.items = options.items;
+
+        this.validateItems();
     }
 
     {% for method in nativeArrayMethods %}
@@ -35,8 +37,25 @@ class Vector extends BaseConstructor {
         return this.items;
     }
 
+    validateItems() {
+        if(process.env.NODE_ENV != 'production') {
+            switch(this.type) {
+            {% for type, method in generics %}
+            case '{{ type }}': {
+                for(let i = 0; i < this.items.length; i++) {
+                    this._validateGenericProperty(i, this.items[i], '{{ type }}');
+                }
+                break;
+            }
+            {% endfor %}
+            }
+        }
+    }
+
     serialize() {
         const items = new Array(this.items.length);
+
+        this.validateItems();
 
         switch(this.type) {
         {% for type, method in generics %}
