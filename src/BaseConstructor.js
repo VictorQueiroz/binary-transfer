@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import Long from 'long';
 import { createMessage } from './utils';
 
 class BaseConstructor {
@@ -75,6 +76,74 @@ class BaseConstructor {
 
     onError(...args) {
         return BaseConstructor.onError(...args);
+    }
+
+    _expect(property, value, type) {
+        this.onError(
+            'Invalid type for %s "%s". ',
+            _.isNumber(property) ? 'vector index' : 'param',
+            property,
+
+            'Expected type %s but got %s instead.',
+            type,
+            typeof value,
+
+            'Check constructor: %s',
+            this._name
+        );
+    }
+
+    _validateGenericProperty(property, value, type) {
+        switch(type) {
+        case 'int':
+        case 'uint':
+        case 'float':
+        case 'double':
+            if(_.isNumber(value)) {
+                break;
+            }
+
+            this._expect(property, value, 'number');
+            break;
+
+        case 'bytes':
+            if(Buffer.isBuffer(value)) {
+                break;
+            }
+
+            this._expect(property, value, 'Buffer');
+            break;
+
+        case 'long':
+        case 'ulong':
+            if(_.isNumber(value) || Long.isLong(value)) {
+                break;
+            }
+            if(_.isString(value)) {
+                break;
+            }
+            this._expect(property, value, 'number or string');
+            break;
+
+        case 'bool':
+            if(_.isBoolean(value)) {
+                break;
+            }
+
+            this._expect(property, value, 'boolean');
+            break;
+
+        case 'string':
+            if(_.isString(value)) {
+                break;
+            }
+
+            this._expect(property, value, 'string');
+            break;
+
+        default:
+            this.onError('unhandled type of %s', type);
+        }
     }
 }
 
