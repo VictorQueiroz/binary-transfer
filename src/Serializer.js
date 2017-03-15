@@ -1,5 +1,6 @@
 import Long from 'long';
 import { Buffer } from 'buffer';
+import * as utils from './utils';
 import { isNumber, isString, unescape } from 'lodash';
 
 class Serializer {
@@ -65,6 +66,9 @@ class Serializer {
         if(isString(long)) {
             // radix = 16
             if(long.substring(0, 2) == '0x') {
+                if((long.length % 2) != 0) {
+                    throw new Error('Invalid hex string');
+                }
                 return this._formatLong(Long.fromString(long.substring(2), unsigned, 16));
             }
 
