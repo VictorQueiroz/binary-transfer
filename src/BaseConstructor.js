@@ -120,6 +120,23 @@ class BaseConstructor {
                 break;
             }
             if(_.isString(value)) {
+                let padding = value.substring(0, 2);
+                const paddingLength = value.length % 2;
+
+                if(padding == '0x' && paddingLength != 0) {
+                    padding = value.substring(2);
+
+                    for(let i = 0; i < paddingLength; i++) {
+                        padding = '0' + padding;
+                    }
+
+                    this.onError(
+                        'Invalid value for property "%s". ', property,
+                        'Hexadecimal strings must have even length. Given: %s. ', value,
+                        'Try adding zero padding: 0x%s', padding
+                    );
+                    break;
+                }
                 break;
             }
             this._expect(property, value, 'number or string');

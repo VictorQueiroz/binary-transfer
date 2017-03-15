@@ -223,7 +223,7 @@ describe('TestSchema', function() {
                 new test.UserStatus({
                     online: 0
                 });
-            }, /Invalid type for param \"online\"\. expected type boolean but got number instead. Check constructor test\.userStatus/);
+            }, /Invalid type for param \"online\"\. Expected type boolean but got number instead. Check constructor\: test\.userStatus/);
         });
     });
 
