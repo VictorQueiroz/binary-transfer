@@ -94,6 +94,12 @@ describe('Serializer', function() {
             deserializer = new Deserializer(serializer.getBuffer());
             assert.equal(deserializer.readLong(), '0x00000000000000ff');
         });
+
+        it('should not allow invalid hex value', function() {
+            assert.throws(function() {
+                serializer.writeLong('0xf');
+            });
+        });
     });
 
     describe('writeULong()', function() {

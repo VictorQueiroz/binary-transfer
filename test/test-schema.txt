@@ -49,3 +49,7 @@ msgEncrypted : Msg {
     data: bytes;
     authCode: bytes;
 }
+
+msg : Msg {
+    id: ulong;
+}

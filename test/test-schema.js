@@ -39,6 +39,14 @@ describe('TestSchema', function() {
         assert.equal(userStatus.online, false);
     });
 
+    it('should not allow invalid long value', function() {
+        assert.throws(function() {
+            new test.Msg({
+                id: '0xf'
+            });
+        });
+    });
+
     describe('Vector', function() {
         it('should deserialize vectors', function() {
             const vector = new Vector({
