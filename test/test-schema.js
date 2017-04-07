@@ -47,6 +47,13 @@ describe('TestSchema', function() {
         });
     });
 
+    it('should support strict defined type', function() {
+        const bytes = test.MsgEncrypted.encode({
+            data: Buffer.alloc(256),
+            authCode: Buffer.alloc(1024)
+        });
+    });
+
     describe('Vector', function() {
         it('should deserialize vectors', function() {
             const vector = new Vector({

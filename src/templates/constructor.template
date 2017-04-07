@@ -108,7 +108,11 @@ class {{constructorName}} extends {{ typeFileData.context.constructorName }} {
 
         {% for param in params %}
             {% if param.generic %}
-                result['{{param.key}}'] = deserializer.read{{param.method}}();
+                {% if param.strictSize %}
+                    // result['{{param.key}}'] = deserializer._readBytes()
+                {% else %}
+                    result['{{param.key}}'] = deserializer.read{{param.method}}();
+                {% endif %}
             {% elseif param.vector %}
                 result['{{param.key}}'] = Vector.decode({
                     type: '{{param.type}}',

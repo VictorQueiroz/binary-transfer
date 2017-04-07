@@ -43,6 +43,15 @@ class BaseConstructor {
         return this.supportStrictSize.indexOf(type) > -1;
     }
 
+    static isStrictSizeDefinition(type) {
+        return this.supportStrictSize.some(name => {
+            if(type.substring(0, name.length) == name) {
+                return type.substring(name.length, name.length + 1) == '[';
+            }
+            return false;
+        });
+    }
+
     static isGenericType(type) {
         return this.generics.hasOwnProperty(type);
     }
@@ -174,7 +183,23 @@ class BaseConstructor {
         }
     }
 
+    _validateStrictSizeProperty(property, value, type) {
+        const originalType = BaseConstructor.supportStrictSize.find(name => type.substring(0, name.length) == name);
+
+        if(originalType) {
+            this._validateGenericProperty(property, value, originalType);
+            return true;
+        }
+
+        this.onError('No match for strict size type "%s"', type);
+    }
+
     _validatePossibleNonGenericProperty(property, value, type) {
+        if(BaseConstructor.isStrictSizeDefinition(type)) {
+            this._validateStrictSizeProperty(property, value, type);
+            return true;
+        }
+
         if(BaseConstructor.isTypeReference(type)) {
             if(value._type == type) {
                 return true;
@@ -200,6 +225,12 @@ class BaseConstructor {
             );
             return true;
         }
+    }
+
+    static deserialize(deserializer) {
+        return this.decode({
+            deserializer
+        });
     }
 }
 

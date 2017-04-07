@@ -177,6 +177,23 @@ class SchemaBuilder {
             };
         }
 
+        if(BaseConstructor.isStrictSizeDefinition(param.type)) {
+            const type = BaseConstructor.supportStrictSize.find(type => {
+                return param.type.substring(0, type.length) == type;
+            });
+
+            const sizeLength = param.type.substring(type.length + 1, param.type.length - 1);
+
+            return {
+                key: param.name,
+                type: type,
+                method: this.generics[param.type],
+                generic: true,
+                strictSize: true,
+                sizeLength: sizeLength
+            };
+        }
+
         if(BaseConstructor.isGenericType(param.type)) {
             return {
                 key: param.name,
@@ -214,7 +231,13 @@ class SchemaBuilder {
 
         const files = [];
 
-        const name = `${schema.name}.${predicate.name}`;
+        // add schema prefix to predicate
+        let name = [predicate.name];
+        if(schema.hasOwnProperty('name')) {
+            name.push(schema.name);
+        }
+        name = name.join('.');
+
         const context = {
             schema,
             params: predicate.params.map(param => {

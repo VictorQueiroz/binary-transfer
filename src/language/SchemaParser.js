@@ -49,6 +49,10 @@ class SchemaParser {
                 params: ast.body.map(node => this.parseAst(node))
             });
         }
+        case Syntax.Literal:
+            return ast.value;
+        case Syntax.StrictSizeType:
+            return `${this.parseAst(ast.name)}[${this.parseAst(ast.size)}]`;
         case Syntax.Identifier:
             return ast.name;
         case Syntax.TypeProperty:
