@@ -90,7 +90,15 @@ class {{constructorName}} extends {{ typeFileData.context.constructorName }} {
         );
     }
 
-    static decode(deserializer) {
+    static decode(options = {}) {
+        const missingFields = _.every(['deserializer', 'buffer'], prop => options.hasOwnProperty(prop) != true);
+
+        if(missingFields) {
+            this.onError('You must provide %s or %s option when using decode()', 'buffer', 'deserializer');
+            return false;
+        }
+
+        const deserializer = options.deserializer || new Deserializer(options.buffer);
         const result = {};
         const header = deserializer._readBytes(4);
 
