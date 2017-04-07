@@ -164,6 +164,34 @@ class BaseConstructor {
             this.onError('unhandled type of %s', type);
         }
     }
+
+    _validatePossibleNonGenericProperty(property, value, type) {
+        if(BaseConstructor.isTypeReference(type)) {
+            if(value._type == type) {
+                return true;
+            }
+
+            this.onError('invalid type for param "%s". expected %s but got %s instead',
+                property,
+                type,
+                value._type
+            );
+            return true;
+        }
+
+        if(BaseConstructor.isConstructorReference(type)) {
+            if(value._name == type) {
+                return true;
+            }
+
+            this.onError('invalid constructor for param "%s". expected %s but got %s instead',
+                property,
+                type,
+                value._name
+            );
+            return true;
+        }
+    }
 }
 
 export default BaseConstructor;

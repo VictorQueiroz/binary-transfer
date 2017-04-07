@@ -55,35 +55,12 @@ class {{constructorName}} extends {{ typeFileData.context.constructorName }} {
         switch(type) {
         {% for type, method in generics %}
         case '{{ type }}':
+        {% endfor %} {
             this._validateGenericProperty(property, value, type);
             break;
-        {% endfor %}
+        }
         default:
-            if(BaseConstructor.isTypeReference(type)) {
-                if(value._type == type) {
-                    break;
-                }
-
-                this.onError('invalid type for param "%s". expected %s but got %s instead',
-                    property,
-                    type,
-                    value._type
-                );
-                break;
-            }
-
-            if(BaseConstructor.isConstructorReference(type)) {
-                if(value._name == type) {
-                    break;
-                }
-
-                this.onError('invalid constructor for param "%s". expected %s but got %s instead',
-                    property,
-                    type,
-                    value._name
-                );
-                break;
-            }
+            this._validatePossibleNonGenericProperty(property, value, type);
         }
     }
 
