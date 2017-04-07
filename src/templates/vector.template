@@ -147,7 +147,9 @@ class Vector extends BaseConstructor {
             }
 
             for(let i = 0; i < length; i++) {
-                array[i] = Constructor.deserialize(deserializer);
+                array[i] = Constructor.decode({
+                    deserializer
+                });
             }
         }
 

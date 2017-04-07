@@ -50,7 +50,7 @@ describe('SchemaBuilder', function() {
 
 		it('should support types from multiple schemas', function() {
 			assert.deepEqual(builder.parseIdentifier('GeoPoint', ...schemas), {
-				type: 'coords.GeoPoint',
+				type: 'GeoPoint',
 				possibleIds: [
 					2334324,
 					3588494

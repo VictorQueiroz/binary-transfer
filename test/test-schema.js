@@ -60,7 +60,7 @@ describe('TestSchema', function() {
 
         it('should support direct pointing to a constructor', function() {
             const vector = new Vector({
-                type: 'test.account',
+                type: 'account',
                 items: [new test.Account({
                     id: 100,
                     email: 'a@b.c',
@@ -69,7 +69,7 @@ describe('TestSchema', function() {
             });
 
             assert(Vector.decode({
-                type: 'test.account',
+                type: 'account',
                 buffer: vector.serialize()
             }).serialize().equals(vector.serialize()));
         });
@@ -263,7 +263,7 @@ describe('TestSchema', function() {
         it('should validate vector type using schema prefix for non-generic types', function() {
             new test.players.PlayersList({
                 players: new Vector({
-                    type: 'test.players.Player',
+                    type: 'players.Player',
                     items: [new test.players.Player({
                         id: 31848
                     })]
@@ -275,11 +275,11 @@ describe('TestSchema', function() {
             assert.throws(function() {
                 new test.players.PlayersList({
                     players: new Vector({
-                        type: 'test.players.player',
+                        type: 'players.player',
                         items: []
                     })
                 });
-            }, /Invalid vector type for param players. expected test.players.Player but got test.players.player instead/);
+            }, /Invalid vector type for param players. expected players.Player but got players.player instead/);
         });
 
         it('should throw for invalid bool type', function() {
@@ -287,7 +287,7 @@ describe('TestSchema', function() {
                 new test.UserStatus({
                     online: 0
                 });
-            }, /Invalid type for param \"online\"\. Expected type boolean but got number instead. Check constructor\: test\.userStatus/);
+            }, /Invalid type for param \"online\"\. Expected type boolean but got number instead. Check constructor\: userStatus/);
         });
     });
 
@@ -509,7 +509,7 @@ describe('TestSchema', function() {
             new test.Account({
 
             });
-        }, /missing property \"id\" for \"test.account\" constructor/);
+        }, /missing property \"id\" for \"account\" constructor/);
     });
 
     it('should throw if found a invalid header for non-generic param type', function() {
@@ -538,7 +538,7 @@ describe('TestSchema', function() {
                     online: new test.BoolTrue()
                 })
             });
-        }, /invalid type for param "online". expected test.Bool but got test.players.CreatePlayerResponse instead/);
+        }, /invalid type for param "online". expected Bool but got players.CreatePlayerResponse instead/);
     });
 
     it('should support direct linking to constructor', function(){
@@ -559,7 +559,7 @@ describe('TestSchema', function() {
                 id: 3881,
                 author: new test.BoolTrue()
             });
-        }, /invalid constructor for param "author". expected test.players.player but got test.boolTrue instead/);
+        }, /invalid constructor for param "author". expected players.player but got boolTrue instead/);
 
         assert.throws(function() {
             test.Book.decode(new Deserializer(test.Book.encode({

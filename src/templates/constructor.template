@@ -18,14 +18,14 @@ header.writeUInt32LE({{ predicate.id }}, 0);
 class {{constructorName}} extends {{ typeFileData.context.constructorName }} {
     static _id = {{ predicate.id }};
     static _type = '{{ predicate.type }}';
-    static _name = '{{ schema.name }}.{{ predicate.name }}';
+    static _name = '{{ predicate.name }}';
     static _header = header;
 
     constructor(props) {
         super({
             _id: {{ predicate.id }},
-            _type: '{{ schema.name }}.{{ predicate.type }}',
-            _name: '{{ schema.name }}.{{ predicate.name }}',
+            _type: '{{ predicate.type }}',
+            _name: '{{ predicate.name }}',
             _props: props,
             _header: header,
             _params: params
@@ -143,7 +143,9 @@ class {{constructorName}} extends {{ typeFileData.context.constructorName }} {
                     {% endif %}
                 }
 
-                result['{{param.key}}'] = this.Constructor.deserialize(deserializer);
+                result['{{param.key}}'] = this.Constructor.decode({
+                    deserializer
+                });
             {% endif %}
         {% endfor %}
 

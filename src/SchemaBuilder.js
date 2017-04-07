@@ -117,7 +117,7 @@ class SchemaBuilder {
     createTypeFile(type, schema) {
         const context = {
             type: {
-                name: `${schema.name}.${type}`
+                name: type
             },
             possibleIds: schema.constructors.predicates.map(predicate => {
                 return predicate.id;
@@ -152,7 +152,7 @@ class SchemaBuilder {
         });
 
         return {
-            type: `${schema.name}.${id}`,
+            type: id,
             possibleIds: ids
         };
     }
@@ -214,7 +214,7 @@ class SchemaBuilder {
 
         const files = [];
 
-        const name = `${schema.name}.${predicate.name}`;
+        const name = predicate.name;
         const context = {
             schema,
             params: predicate.params.map(param => {
