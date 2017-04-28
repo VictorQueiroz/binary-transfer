@@ -277,13 +277,15 @@ describe('TestSchema', function() {
         });
 
         it('should validate vector type using schema prefix for non-generic types', function() {
-            new test.players.PlayersList({
-                players: new Vector({
-                    type: 'players.Player',
-                    items: [new test.players.Player({
-                        id: 31848
-                    })]
-                })
+            assert.doesNotThrow(function() {
+                new test.players.PlayersList({
+                    players: new Vector({
+                        type: 'players.Player',
+                        items: [new test.players.Player({
+                            id: 31848
+                        })]
+                    })
+                });
             });
         });
 
