@@ -167,6 +167,22 @@ class {{constructorName}} extends {{ typeFileData.context.constructorName }} {
 
         return serializer.getBuffer();
     }
+
+    toPlainObject() {
+        const props = {
+            _: this._name
+        };
+
+        {% for param in params %}
+        {% if param.generic %}
+        props['{{ param.key }}'] = this['{{ param.key }}'];
+        {% else %}
+        props['{{ param.key }}'] = this['{{ param.key }}'].toPlainObject();
+        {% endif %}
+        {% endfor %}
+
+        return props;
+    }
 }
 
 ConstructorStore.register({{ predicate.id }}, {{ constructorName }});

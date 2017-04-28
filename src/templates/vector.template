@@ -37,6 +37,17 @@ class Vector extends BaseConstructor {
         return this.items;
     }
 
+    toPlainObject() {
+        switch(this.type) {
+        {% for type, method in generics %}
+        case '{{type}}': {% endfor %} {
+            return this.map(item => item);
+        }
+        default:
+            return this.map(item => item.toPlainObject());
+        }
+    }
+
     validateItems() {
         if(process.env.NODE_ENV != 'production') {
             switch(this.type) {

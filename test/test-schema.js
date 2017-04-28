@@ -190,6 +190,22 @@ describe('TestSchema', function() {
         });
     });
 
+    describe('toPlainObject()', function() {
+        it('should transform constructor in plain javasccript object', function() {
+            const acc = new test.Account({
+                id: 200,
+                email: 'victor@victor.victor',
+                username: 'victor'
+            });
+            assert.deepEqual(acc.toPlainObject(), {
+                _: test.Account._name,
+                id: 200,
+                email: 'victor@victor.victor',
+                username: 'victor'
+            });
+        });
+    });
+
     describe('serialize()', function() {
         it('should serialize constructor properties into buffer', function() {
             const bytes = new test.Account({
