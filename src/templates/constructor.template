@@ -94,6 +94,7 @@ class {{constructorName}} extends {{ typeFileData.context.constructorName }} {
             return false;
         }
 
+        let Constructor;
         const deserializer = options.deserializer || new Deserializer(options.buffer);
         const result = {};
         const header = deserializer._readBytes(4);
@@ -135,15 +136,13 @@ class {{constructorName}} extends {{ typeFileData.context.constructorName }} {
                 })();
                 }
 
-                if(!this.Constructor) {
-                    {% if param.constructorReference %}
-                        this.Constructor = ConstructorStore.findConstructorFromName('{{param.type}}');
-                    {% else %}
-                        this.Constructor = ConstructorStore.findConstructorFromBuffer(deserializer.buffer.slice(deserializer.offset));
-                    {% endif %}
-                }
+                {% if param.constructorReference %}
+                Constructor = ConstructorStore.findConstructorFromName('{{param.type}}');
+                {% else %}
+                Constructor = ConstructorStore.findConstructorFromBuffer(deserializer.buffer.slice(deserializer.offset));
+                {% endif %}
 
-                result['{{param.key}}'] = this.Constructor.decode({
+                result['{{param.key}}'] = Constructor.decode({
                     deserializer
                 });
             {% endif %}
