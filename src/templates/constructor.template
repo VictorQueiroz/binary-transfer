@@ -20,7 +20,7 @@ class {{constructorName}} extends {{ typeFileData.context.constructorName }} {
     static _params = params;
     static _Vector = Vector;
 
-    constructor(props) {
+    constructor(props = {}) {
         super({
             _id: {{ predicate.id }},
             _type: '{{ predicate.type }}',
