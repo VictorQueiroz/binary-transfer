@@ -4,22 +4,21 @@ import ConstructorStore from '{{rootPath}}/ConstructorStore.js';
 import {{typeFileData.context.constructorName}} from '{{typeFileData.filePath}}';
 import {Deserializer, Serializer, BaseConstructor} from '{{binaryTransferPath}}';
 
-const header = Buffer.alloc(4);
-const params = [];
-
-// constructor params
-{% for param in predicate.params %}
-params.push('{{ param.name }}');
-{% endfor %}
-
 // constructor header
+const header = Buffer.alloc(4);
 header.writeUInt32LE({{ predicate.id }}, 0);
+
+// detailed params
+const params = {{ params | dump | safe }};
 
 class {{constructorName}} extends {{ typeFileData.context.constructorName }} {
     static _id = {{ predicate.id }};
     static _type = '{{ predicate.type }}';
     static _name = '{{ predicate.name }}';
+    static _store = ConstructorStore;
     static _header = header;
+    static _params = params;
+    static _Vector = Vector;
 
     constructor(props) {
         super({
@@ -28,160 +27,12 @@ class {{constructorName}} extends {{ typeFileData.context.constructorName }} {
             _name: '{{ predicate.name }}',
             _props: props,
             _header: header,
-            _params: params
+            _params: params,
         });
-
-        if(process.env.NODE_ENV != 'production') {
-            {% for param in params %}
-                {% if param.vector %}
-                this._validateVector('{{ param.key }}', this['{{ param.key }}'], '{{ param.type }}');
-                {% else %}
-                this._validateProperty('{{ param.key }}', this['{{ param.key }}'], '{{ param.type }}');
-                {% endif %}
-            {% endfor %}
-        }
     }
 
-    _validateVector(property, value, type) {
-        if(value.type != type) {
-            this.onError('Invalid vector type for param %s. expected %s but got %s instead',
-                property,
-                type,
-                value.type);
-        }
-    }
-
-    _validateProperty(property, value, type) {
-        switch(type) {
-        {% for type, method in generics %}
-        case '{{ type }}':
-        {% endfor %} {
-            this._validateGenericProperty(property, value, type);
-            break;
-        }
-        default:
-            this._validatePossibleNonGenericProperty(property, value, type);
-        }
-    }
-
-    serialize() {
-        const object = {};
-
-        {% for param in params %}
-        object['{{ param.key }}'] = this['{{ param.key }}']{% if not param.generic %}.serialize(){% endif %};
-        {% endfor %}
-
-        return {{ constructorName }}.encode(object);
-    }
-
-    static validate(header) {
-        if(BaseConstructor.validate(header, [this._id])) {
-            return true;
-        }
-
-        this.onError('invalid header for constructor "%s". expected %s but got %s instead',
-            this._name,
-            this._id,
-            header.readUInt32LE(0)
-        );
-    }
-
-    static decode(options = {}) {
-        const missingFields = _.every(['deserializer', 'buffer'], prop => options.hasOwnProperty(prop) != true);
-
-        if(missingFields) {
-            this.onError('You must provide %s or %s option when using decode()', 'buffer', 'deserializer');
-            return false;
-        }
-
-        let Constructor;
-        const deserializer = options.deserializer || new Deserializer(options.buffer);
-        const result = {};
-        const header = deserializer._readBytes(4);
-
-        if(process.env.NODE_ENV != 'production') {
-            this.validate(header);
-        }
-
-        {% for param in params %}
-            {% if param.generic %}
-                result['{{param.key}}'] = deserializer.read{{param.method}}();
-            {% elseif param.vector %}
-                result['{{param.key}}'] = Vector.decode({
-                    type: '{{param.type}}',
-                    deserializer
-                });
-            {% elseif param.constructorReference or param.typeReference %}
-                if(process.env.NODE_ENV != 'production') {
-                (() => {
-                let found = false;
-                const ids = [{{ param.possibleIds | join(', ') }}];
-                const header = deserializer.buffer.readUInt32LE(deserializer.offset);
-
-                for(let i = 0; i < ids.length; i++) {
-                    if(header == ids[i]) {
-                        found = true;
-                        break;
-                    }
-                }
-
-                if(!found) {
-                    this.onError('invalid header for param "%s". expected %s but got %s instead',
-                        '{{ param.key }}',
-                        ids.join(' or '),
-                        header
-                    );
-                    return false;
-                }
-                })();
-                }
-
-                {% if param.constructorReference %}
-                Constructor = ConstructorStore.findConstructorFromName('{{param.type}}');
-                {% else %}
-                Constructor = ConstructorStore.findConstructorFromBuffer(deserializer.buffer.slice(deserializer.offset));
-                {% endif %}
-
-                result['{{param.key}}'] = Constructor.decode({
-                    deserializer
-                });
-            {% endif %}
-        {% endfor %}
-
-        return new {{ constructorName }}(result);
-    }
-
-    static encode(object) {
-        const serializer = new Serializer();
-
-        // write header
-        serializer.addBuffer(header);
-
-        {% for param in params %}
-            {% if param.generic %}
-                serializer.write{{param.method}}(object['{{param.key}}']);
-            {% else %}
-                serializer.addBuffer(object['{{param.key}}']);
-            {% endif %}
-        {% endfor %}
-
-        return serializer.getBuffer();
-    }
-
-    toPlainObject() {
-        const props = {
-            _: this._name
-        };
-
-        {% for param in params %}
-        {% if param.generic %}
-        props['{{ param.key }}'] = this['{{ param.key }}'];
-        {% else %}
-        props['{{ param.key }}'] = this['{{ param.key }}'].toPlainObject();
-        {% endif %}
-        {% endfor %}
-
-        return props;
+    static createConstructor(props) {
+        return new {{ constructorName }}(props);
     }
 }
 

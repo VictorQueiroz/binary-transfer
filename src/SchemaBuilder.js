@@ -1,47 +1,13 @@
 import _ from 'lodash';
 import fs from 'fs';
 import path from 'path';
+import ParamEnum from './ParamEnum';
 import BaseConstructor from './BaseConstructor';
 
 class SchemaBuilder {
     constructor(options = {}) {
         _.defaultsDeep(options, {
             generics: BaseConstructor.generics,
-            vector: {
-                lodashMethods: [
-                    // array
-                    'chunk', 'compact', 'concat', 'difference',
-                    'differenceBy', 'differenceWith', 'drop',
-                    'dropRight', 'dropRightWhile', 'dropWhile',
-                    'fill', 'findIndex', 'findLastIndex', 'flatten',
-                    'flattenDeep', 'flattenDepth', 'fromPairs', 'first',
-                    'head', 'indexOf', 'initial', 'intersection', 'intersectionBy',
-                    'intersectionWith', 'join', 'last', 'lastIndexOf',
-                    'nth', 'pull', 'pullAll', 'pullAllBy', 'pullAllWith',
-                    'pullAt', 'remove', 'reverse', 'slice', 'sortedIndex',
-                    'sortedIndexBy', 'sortedIndexOf', 'sortedLastIndex',
-                    'sortedLastIndexBy', 'sortedLastIndexOf', 'sortedUniq',
-                    'sortedUniqBy', 'tail', 'take', 'takeRight',
-                    'takeRightWhile', 'takeWhile', 'union', 'unionBy',
-                    'unionWith', 'uniq', 'uniqBy', 'uniqWith', 'unzip',
-                    'unzipWith', 'without', 'xor', 'xorBy', 'xorWith',
-                    'zip', 'zipObject', 'zipObjectDeep', 'zipWith',
-
-                    // collection
-                    'countBy', 'each', 'forEach', 'eachRight', 'forEachRight',
-                    'every', 'filter', 'find', 'findLast', 'flatMap', 'flatMapDeep',
-                    'flatMapDepth', 'forEach', 'forEachRight', 'groupBy', 'includes',
-                    'invokeMap', 'keyBy', 'map', 'orderBy', 'partition', 'reduce',
-                    'reduceRight', 'reject', 'sample', 'sampleSize', 'shuffle',
-                    'size', 'some', 'sortBy'
-                ],
-
-                nativeArrayMethods: [
-                    'shift', 'pop', 'push', 'sort', 'concat',
-                    'values', 'keys', 'entries', 'splice', 'unshift'
-                ]
-            },
-            schemas: [],
             binaryTransferPath: 'binary-transfer'
         });
 
@@ -104,9 +70,6 @@ class SchemaBuilder {
             filePath: './Vector.js',
             template: fs.readFileSync(path.resolve(__dirname, 'templates/vector.template')),
             context: {
-                generics: this.generics,
-                lodashMethods: this.vector.lodashMethods,
-                nativeArrayMethods: this.vector.nativeArrayMethods,
                 binaryTransferPath: this.binaryTransferPath
             }
         });
@@ -133,6 +96,9 @@ class SchemaBuilder {
         };
     }
 
+    /**
+     * Collect all possible ids for identifier
+     */
     parseIdentifier(id, ...schemas) {
         const isTypeReference = BaseConstructor.isTypeReference(id);
         const isConstructorReference = BaseConstructor.isConstructorReference(id);
@@ -172,17 +138,17 @@ class SchemaBuilder {
 
             return {
                 key: param.name,
-                type,
-                vector: true
+                type: ParamEnum.GENERIC | ParamEnum.VECTOR,
+                vectorOf: type
             };
         }
 
         if(BaseConstructor.isGenericType(param.type)) {
             return {
                 key: param.name,
-                type: param.type,
+                type: ParamEnum.GENERIC,
                 method: this.generics[param.type],
-                generic: true,
+                genericType: param.type
             };
         }
 
@@ -191,18 +157,18 @@ class SchemaBuilder {
         if(BaseConstructor.isTypeReference(param.type)) {
             return {
                 key: param.name,
-                type: id.type,
-                possibleIds: id.possibleIds,
-                typeReference: true
+                type: ParamEnum.CONTAINER_TYPE_REFERENCE,
+                reference: id.type,
+                possibleIds: id.possibleIds
             };
         }
 
         if(BaseConstructor.isConstructorReference(param.type)) {
             return {
                 key: param.name,
-                type: id.type,
-                possibleIds: id.possibleIds,
-                constructorReference: true
+                type: ParamEnum.CONTAINER_REFERENCE,
+                reference: id.type,
+                possibleIds: id.possibleIds
             };
         }
     }

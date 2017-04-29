@@ -24,17 +24,21 @@ describe('TestSchema', function() {
     });
 
     it('should support bool = true param', function() {
-        const userStatus = test.UserStatus.decode(new Deserializer(test.UserStatus.encode({
-            online: true
-        })));
+        const userStatus = test.UserStatus.decode({
+            buffer: test.UserStatus.encode({
+                online: true
+            })
+        });
 
         assert.equal(userStatus.online, true);
     });
 
     it('should support bool = true param', function() {
-        const userStatus = test.UserStatus.decode(new Deserializer(test.UserStatus.encode({
-            online: false
-        })));
+        const userStatus = test.UserStatus.decode({
+            buffer: test.UserStatus.encode({
+                online: false
+            })
+        });
 
         assert.equal(userStatus.online, false);
     });
@@ -94,9 +98,9 @@ describe('TestSchema', function() {
                 })), '[1,2,3,4]');
             });
 
-            it('should transform Vector<test.Account> into JSON', function() {
+            it('should transform Vector<Account> into JSON', function() {
                 const vector = new Vector({
-                    type: 'test.Account',
+                    type: 'Account',
                     items: [new test.Account({
                         id: 100,
                         email: 'a@b.c',
@@ -105,6 +109,7 @@ describe('TestSchema', function() {
                 });
 
                 assert.equal(JSON.stringify(vector), JSON.stringify([{
+                    _: 'account',
                     id: 100,
                     username: '1234567',
                     email: 'a@b.c'
@@ -177,12 +182,14 @@ describe('TestSchema', function() {
                 username: '1234567'
             });
             assert.deepEqual(account.toJSON(), {
+                _: test.Account._name,
                 id: 100,
                 email: 'a@b.c.',
                 username: '1234567'
             });
 
             assert.equal(JSON.stringify(account), JSON.stringify({
+                _: test.Account._name,
                 id: 100,
                 username: '1234567',
                 email: 'a@b.c.'
@@ -262,7 +269,7 @@ describe('TestSchema', function() {
         it('should decode vector inside constructors', function() {
             const bytes = test.players.PlayersList.encode({
                 players: Vector.encode({
-                    type: 'test.players.Player',
+                    type: 'players.Player',
                     items: [test.players.Player.encode({
                         id: 100
                     })]
@@ -459,9 +466,9 @@ describe('TestSchema', function() {
         assert.equal('e', deserializer.readString());
     });
 
-    it('should encode Vector<test.Post> using serialize()', function() {
+    it('should encode Vector<Post> using serialize()', function() {
         const vector = new Vector({
-            type: 'test.Post',
+            type: 'Post',
             items: [new test.Post({
                 id: 100,
                 body: '',
@@ -483,7 +490,7 @@ describe('TestSchema', function() {
         });
 
         assert(vector.serialize().equals(Vector.encode({
-            type: 'test.Post',
+            type: 'Post',
             items: [test.Post.encode({
                 id: 100,
                 body: '',
@@ -545,8 +552,10 @@ describe('TestSchema', function() {
         bytes.writeUInt32LE(Vector._id, 8);
 
         assert.throws(function() {
-            test.Post.decode(new Deserializer(bytes));
-        }, /invalid header for param \"author\". expected 956573801 but got 460212315 instead/);
+            test.Post.decode({
+                buffer: bytes
+            });
+        }, /invalid header for param \"author\". expected 956573801 but got 8 instead/);
     });
 
     it('should throw if give an invalid param type is given', function() {

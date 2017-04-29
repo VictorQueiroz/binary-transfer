@@ -17,7 +17,13 @@ class BaseConstructor {
         double: 'Double'
     };
 
-    static validate(header, ids) {
+    /**
+     * Find for header inside ids
+     * @param  {Buffer} header Header to look for
+     * @param  {Array} ids    32-bit integer list
+     * @return {Boolean}        Header is found or not
+     */
+    static validateHeader(header, ids) {
         let found = false;
 
         header = header.readUInt32LE(0);

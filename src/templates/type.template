@@ -1,76 +1,9 @@
 import _ from 'lodash';
-import { BaseConstructor } from '{{binaryTransferPath}}';
+import { BaseContainerType } from '{{binaryTransferPath}}';
 
-class {{constructorName}} extends BaseConstructor {
+class {{constructorName}} extends BaseContainerType {
     static _ids = [{{ possibleIds | join(', ') }}];
-    static _name = '{{type.name}}';
-
-    static validate(header) {
-        const ids = this._ids;
-
-        if(BaseConstructor.validate(header, ids)) {
-            return true;
-        }
-
-        BaseConstructor.onError('Invalid header for type %s. expected %s but got %s instead',
-            {{constructorName}}._name,
-            ids.join(' or '),
-            header
-        );
-    }
-
-    constructor(options) {
-        super();
-
-        this._id = options._id;
-        this._type = options._type;
-        this._name = options._name;
-        this._header = options._header;
-
-        if(!options.hasOwnProperty('_params')) {
-            this.onError('missing "%s" property for "%s" constructor', '_params', this._name);
-            return false;
-        }
-
-        if(process.env.NODE_ENV == 'development') {
-            options._params.forEach(param => {
-                if(options._props.hasOwnProperty(param)) {
-                    return true;
-                }
-
-                this.onError('missing property "%s" for "%s" constructor', param, this._name);
-            });
-        }
-
-        if(options.hasOwnProperty('_props')) {
-            _.forEach(options._props, (value, key) => {
-                if(process.env.NODE_ENV == 'development') {
-                    if(options._params.indexOf(key) == -1) {
-                        this.onError('unexpected property "%s" on constructor "%s"', key, this._name);
-                        return false;
-                    }
-                }
-
-                this[key] = value;
-            });
-        }
-
-        this._params = options._params;
-    }
-
-    instanceOf(name) {
-        return this._name == name;
-    }
-
-    toJSON() {
-        const props = {};
-
-        this._params.forEach(key => {
-            props[key] = this[key];
-        });
-
-        return props;
-    }
+    static _type = '{{type.name}}';
 }
 
 module.exports = {{constructorName}};
