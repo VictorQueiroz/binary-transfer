@@ -558,7 +558,7 @@ describe('TestSchema', function() {
         }, /invalid header for param \"author\". expected 956573801 but got 8 instead/);
     });
 
-    it('should throw if give an invalid param type is given', function() {
+    it('should throw if an invalid param type is given', function() {
         assert.throws(function() {
             new test.players.CreatePlayer({
                 online: new test.players.CreatePlayer({
