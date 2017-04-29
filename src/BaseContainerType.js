@@ -39,20 +39,24 @@ class BaseContainerType extends BaseConstructor {
 
         const paramsList = [];
 
-        if(process.env.NODE_ENV != 'production') {
-            options._params.forEach(param => {
-                paramsList.push(param.key);
+        options._params.forEach(param => {
+            paramsList.push(param.key);
 
+            if(process.env.NODE_ENV != 'production') {
                 if(options._props.hasOwnProperty(param.key)) {
                     return true;
                 }
 
                 this.onError('missing property "%s" for "%s" constructor', param.key, this._name);
-            });
-        }
+            }
+        });
 
         if(options.hasOwnProperty('_props')) {
-            _.forEach(options._props, (value, key) => {
+            const props = options._props;
+
+            Object.keys(props).forEach(key => {
+                const value = props[key];
+
                 if(process.env.NODE_ENV != 'production') {
                     if(paramsList.indexOf(key) == -1) {
                         this.onError('unexpected property "%s" on constructor "%s"', key, this._name);
