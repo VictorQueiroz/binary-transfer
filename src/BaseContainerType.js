@@ -42,13 +42,11 @@ class BaseContainerType extends BaseConstructor {
         options._params.forEach(param => {
             paramsList.push(param.key);
 
-            if(process.env.NODE_ENV != 'production') {
-                if(options._props.hasOwnProperty(param.key)) {
-                    return true;
-                }
-
-                this.onError('missing property "%s" for "%s" constructor', param.key, this._name);
+            if(options._props.hasOwnProperty(param.key) && _.isUndefined(options._props[param.key]) != true) {
+                return true;
             }
+
+            this._handleMissingProperty(param.key, param.genericType);
         });
 
         if(options.hasOwnProperty('_props')) {
@@ -91,6 +89,37 @@ class BaseContainerType extends BaseConstructor {
                 }
             });
         }
+    }
+
+    _handleMissingProperty(key, type) {
+        let value;
+
+        switch(type) {
+        case 'int':
+        case 'uint':
+        case 'long':
+        case 'short':
+        case 'ulong':
+        case 'float':
+        case 'ushort':
+        case 'double':
+            value = 0;
+            break;
+        case 'bytes':
+            value = Buffer.alloc(0);
+            break;
+        case 'string':
+            value = '';
+            break;
+        case 'bool':
+            value = false;
+            break;
+        default:
+            this.onError('could not find a default value for property "%s" for "%s" constructor', key, this._name);
+            return false;
+        }
+
+        this[key] = value;
     }
 
     serialize() {

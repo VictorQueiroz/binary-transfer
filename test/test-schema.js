@@ -529,12 +529,18 @@ describe('TestSchema', function() {
         });
     });
 
-    it('should throw an error if you instantiate a constructor with a missing param', function() {
-        assert.throws(function() {
-            new test.Account({
+    it('should define defaults properties for constructors initialized with missing params', function() {
+        assert.deepEqual(new test.Account(), new test.Account({
+            id: 0,
+            username: '',
+            email: ''
+        }));
 
-            });
-        }, /missing property \"id\" for \"account\" constructor/);
+        assert.deepEqual(new test.Post({ author: new test.Account() }), new test.Post({
+            id: 0,
+            author: new test.Account(),
+            body: ''
+        }));
     });
 
     it('should throw if found a invalid header for non-generic param type', function() {
