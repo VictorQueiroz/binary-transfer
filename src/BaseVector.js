@@ -80,30 +80,27 @@ class BaseVector extends BaseConstructor {
                 array[i] = deserializer[`read${genericMethod}`]();
             }
         } else {
-            let Constructor;
+            const isStrictContainer = BaseConstructor.isConstructorReference(options.type);
 
-            if(length > 0) {
-                if(BaseConstructor.isConstructorReference(options.type)) {
-                    Constructor = this.store.findConstructorFromName(options.type);
-                } else if(BaseConstructor.isTypeReference(options.type)) {
-                    // get first constructor header
-                    Constructor = this.store.findConstructorFromBuffer(deserializer.buffer.slice(deserializer.offset));
-                } else {
-                    this.onError('Invalid type name: %s', options.type);
-                    return false;
+            if(isStrictContainer) {
+                const Constructor = this.store.findConstructorFromName(options.type);
+
+                for(let i = 0; i < length; i++) {
+                    array[i] = Constructor.decode({
+                        deserializer
+                    });
                 }
+            } else {
+                for(let i = 0; i < length; i++) {
+                    const currentOffset = deserializer.offset;
+                    const Constructor = this.store.findConstructorFromBuffer(deserializer.buffer.slice(currentOffset));
 
-                if(!Constructor) {
-                    this.onError('Cannot find constructor for type: %s', options.type);
-                    return false;
+                    array[i] = Constructor.decode({
+                        deserializer
+                    });
                 }
             }
 
-            for(let i = 0; i < length; i++) {
-                array[i] = Constructor.decode({
-                    deserializer
-                });
-            }
         }
 
         return this.createVector({
