@@ -14,7 +14,7 @@ build_test_schema:
 benchmark: build_test_schema
 	node benchmark/index.js
 
-test: build_test_schema benchmark
+test: build_test_schema
 	NODE_ENV=development ./node_modules/.bin/mocha \
 	test/ \
 	--recursive \
