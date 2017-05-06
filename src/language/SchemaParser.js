@@ -145,13 +145,21 @@ class SchemaParser {
             name: `${namespace}.${name}`,
             type: BaseConstructor.isGenericType(type) ? type : `${namespace}.${type}`,
             params: params.map(param => {
+                let type = param.type;
+                const isVector = type.substring(0, 6) == 'Vector';
+                const vectorType = isVector && type.substring(7, type.length - 1);
+
                 const foundLocalContainer = allContainers.some(container => {
-                    return container.type == param.type;
+                    return container.type == (isVector ? vectorType : type);
                 });
+
+                if(foundLocalContainer) {
+                    type = vectorType ? `Vector<${namespace}.${vectorType}>` : `${namespace}.${type}`;
+                }
 
                 return {
                     name: param.name,
-                    type: BaseConstructor.isGenericType(type) ? param.type : foundLocalContainer ? `${namespace}.${param.type}` : param.type
+                    type
                 };
             })
         });

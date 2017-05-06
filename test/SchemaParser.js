@@ -1,6 +1,6 @@
 import fs from 'fs';
 import assert from 'assert';
-import {language} from '../src';
+import { language } from '../src';
 
 describe('SchemaParser', function() {
     let testSchema,
@@ -9,6 +9,74 @@ describe('SchemaParser', function() {
     beforeEach(() => {
         testSchema = fs.readFileSync('./test/test-schema.txt');
         schemaParser = new language.SchemaParser();
+    });
+
+    it('should parse vector inside namespace', function() {
+        assert.deepEqual(schemaParser.parse(`
+            namespace posts {
+                type Comment {
+                    comment -> body: string
+                    commentDeleted -> deleteDate: uint
+                }
+                type Post {
+                    post {
+                        name: string;
+                        comments: Vector<Comment>;
+                    }
+                }
+            }
+        `), [{
+            id: 3858428844,
+            params: [{
+                type: 'string',
+                name: 'body'
+            }],
+            type: 'posts.Comment',
+            name: 'posts.comment'
+        }, {
+            id: 3660060063,
+            params: [{
+                type: 'uint',
+                name: 'deleteDate'
+            }],
+            type: 'posts.Comment',
+            name: 'posts.commentDeleted'
+        }, {
+            id: 3650725341,
+            name: 'posts.post',
+            params: [{
+                type: 'string',
+                name: 'name'
+            }, {
+                type: 'Vector<posts.Comment>',
+                name: 'comments'
+            }],
+            type: 'posts.Post'
+        }]);
+    });
+
+    it('should not match vector if constructor is not find inside namespace', function() {
+        assert.deepEqual(schemaParser.parse(`
+            namespace posts {
+                type Post {
+                    post {
+                        name: string;
+                        comments: Vector<Comment>;
+                    }
+                }
+            }
+        `), [{
+            id: 4144526986,
+            name: 'posts.post',
+            params: [{
+                type: 'string',
+                name: 'name'
+            }, {
+                type: 'Vector<Comment>',
+                name: 'comments'
+            }],
+            type: 'posts.Post'
+        }]);
     });
 
     it('should parse container type group', function() {
