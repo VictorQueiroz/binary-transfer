@@ -82,23 +82,92 @@ class AST {
 
     comment() {
         if(this.expect('---', '/*')) {
-            const comment = {
-                type: Syntax.CommentBlock,
-                blocks: []
-            };
-
-            while(!this.expect('---', '*/')) {
-                comment.blocks.push(this.consume().value);
-            }
-
-            return comment;
+            return this.commentNode();
+        }
+        if(this.expect('namespace')) {
+            return this.quickNamespacing();
+        }
+        if(this.expect('type')) {
+            return this.typeGroup();
         }
 
         return this.typeDeclaration();
     }
 
+    commentNode() {
+        const comment = {
+            type: Syntax.CommentBlock,
+            blocks: []
+        };
+
+        while(!this.expect('---', '*/')) {
+            comment.blocks.push(this.consume().value);
+        }
+
+        return comment;
+    }
+
+    quickNamespacing() {
+        const name = this.identifier();
+        this.consume('{');
+
+        const body = [];
+
+        while(!this.expect('}')) {
+            body.push(this.comment());
+        }
+
+        return {
+            type: Syntax.Namespace,
+            body,
+            name
+        };
+    }
+
+    typeGroup() {
+        const name = this.identifier();
+
+        this.consume('{');
+
+        const body = [];
+
+        while(!this.expect('}')) {
+            body.push(this.typeGroupContainer());
+        }
+
+        return {
+            name,
+            type: Syntax.TypeGroup,
+            body
+        };
+    }
+
+    typeGroupContainer() {
+        const id = this.typeIdentifier();
+        let body = [];
+
+        if(this.expect('{')) {
+            body = this.typeBody();
+        } else if(this.expect('->')) {
+            body = this.typeShortBody();
+        } else {
+            this.expect(';');
+        }
+
+        return {
+            name: id,
+            type: Syntax.TypeGroupContainer,
+            body
+        };
+    }
+
     identifier() {
         const token = this.consume();
+
+        if(token.type != Token.Identifier) {
+            this.throwError('unexpected token %s at column %s', this.peek().value, this.peek().start);
+            return false;
+        }
 
         return {
             type: Syntax.Identifier,
@@ -106,17 +175,8 @@ class AST {
         };
     }
 
-    typePrimary() {
-        if(this.peek().type != Token.Identifier) {
-            this.throwError('unexpected token %s at column %s', this.peek().value, this.peek().start);
-            return false;
-        }
-
-        return this.identifier();
-    }
-
     typeIdentifier() {
-        const primary = this.typePrimary();
+        const primary = this.identifier();
 
         if(!this.expect('.')) {
             return primary;
@@ -154,7 +214,7 @@ class AST {
             type.body = this.typeShortBody();
         } else {
             type.body = [];
-            this.consume(';');
+            this.expect(';');
         }
 
         return type;
@@ -230,6 +290,10 @@ class AST {
         const body = [];
 
         while(!this.expect('}')) {
+            if(this.expect('/*', '---')) {
+                body.push(this.commentNode());
+            }
+
             body.push(this.typeProperty());
             this.consume(';');
         }
