@@ -32,7 +32,6 @@ class SchemaParser {
 
         str += ';';
 
-        console.log(str);
         return {
             id: crc.crc32(str),
             ...ctor
