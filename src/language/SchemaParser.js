@@ -199,8 +199,9 @@ class SchemaParser {
                 const isVector = type.substring(0, 6) == 'Vector';
                 const vectorType = isVector && type.substring(7, type.length - 1);
 
+                const containerRef = BaseConstructor.isConstructorReference(isVector ? vectorType : type);
                 const foundLocalContainer = allContainers.some(container => {
-                    return container.type == (isVector ? vectorType : type);
+                    return container[containerRef ? 'name' : 'type'] == (isVector ? vectorType : type);
                 });
 
                 if(foundLocalContainer) {

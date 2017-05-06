@@ -55,6 +55,37 @@ describe('SchemaParser', function() {
         }]);
     });
 
+    it('should not match container type reference', function() {
+        assert.deepEqual(schemaParser.parse(`
+            namespace post {
+                type Post {
+                    post {
+                        comments: Vector<comment>;
+                    }
+                }
+                type Comment {
+                    comment -> id: uint
+                }
+            }
+        `), [{
+            id: 1341726436,
+            name: 'post.post',
+            params: [{
+                type: 'Vector<post.comment>',
+                name: 'comments'
+            }],
+            type: 'post.Post'
+        }, {
+            id: 3709037810,
+            name: 'post.comment',
+            params: [{
+                name: 'id',
+                type: 'uint'
+            }],
+            type: 'post.Comment'
+        }]);
+    });
+
     it('should not match vector if constructor is not find inside namespace', function() {
         assert.deepEqual(schemaParser.parse(`
             namespace posts {
