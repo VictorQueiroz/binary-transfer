@@ -17,14 +17,14 @@ class AST {
     }
 
     eof() {
-        return this.tokens[0].type == Token.EOF;
+        return this.tokens.length === 0 || this.tokens[0].type === Token.EOF;
     }
 
     schema() {
         const body = [];
 
         while(!this.eof()) {
-            body.push(this.comment());
+            body.push(this.container());
         }
 
         return {
@@ -80,9 +80,9 @@ class AST {
         return false;
     }
 
-    comment() {
-        if(this.expect('---', '/*')) {
-            return this.commentNode();
+    container() {
+        if(this.peek().type == Token.Comment) {
+            return this.comment();
         }
         if(this.expect('namespace')) {
             return this.quickNamespacing();
@@ -94,17 +94,11 @@ class AST {
         return this.typeDeclaration();
     }
 
-    commentNode() {
-        const comment = {
+    comment() {
+        return {
             type: Syntax.CommentBlock,
-            blocks: []
+            lines: this.consume().value.split('\n')
         };
-
-        while(!this.expect('---', '*/')) {
-            comment.blocks.push(this.consume().value);
-        }
-
-        return comment;
     }
 
     quickNamespacing() {
@@ -114,7 +108,7 @@ class AST {
         const body = [];
 
         while(!this.expect('}')) {
-            body.push(this.comment());
+            body.push(this.container());
         }
 
         return {
@@ -132,7 +126,11 @@ class AST {
         const body = [];
 
         while(!this.expect('}')) {
-            body.push(this.typeGroupContainer());
+            if(this.peek().type == Token.Comment) {
+                body.push(this.comment());
+            } else {
+                body.push(this.typeGroupContainer());
+            }
         }
 
         return {
@@ -201,7 +199,7 @@ class AST {
         } else {
             ctor = this.typeIdentifier();
         }
-                
+
         const type = {
             type: Syntax.TypeDeclaration,
             ctor,
@@ -290,12 +288,17 @@ class AST {
         const body = [];
 
         while(!this.expect('}')) {
-            if(this.expect('/*', '---')) {
-                body.push(this.commentNode());
-            }
+            if(this.peek().type == Token.Comment) {
+                const token = this.consume();
 
-            body.push(this.typeProperty());
-            this.consume(';');
+                body.push({
+                    type: Syntax.CommentBlock,
+                    lines: token.value.split('\n')
+                });
+            } else {
+                body.push(this.typeProperty());
+                this.consume(';');
+            }
         }
 
         return body;

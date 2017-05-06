@@ -31,6 +31,58 @@ describe('AST', function() {
             });
         });
 
+        it('should support comments inside quick container group typing', function() {
+            deepEqual(ast.ast(`
+                type Post {
+                    /* default post */
+                    postDefault;
+
+                    /* removed post */
+                    postRemoved -> removeDate: uint;
+                }
+            `), {
+                type: Syntax.Schema,
+                body: [{
+                    type: Syntax.TypeGroup,
+                    name: {
+                        type: Syntax.Identifier,
+                        name: 'Post'
+                    },
+                    body: [{
+                        type: Syntax.CommentBlock,
+                        lines: [' default post ']
+                    }, {
+                        type: Syntax.TypeGroupContainer,
+                        name: {
+                            type: Syntax.Identifier,
+                            name: 'postDefault'
+                        },
+                        body: []
+                    }, {
+                        type: Syntax.CommentBlock,
+                        lines: [' removed post ']
+                    }, {
+                        type: Syntax.TypeGroupContainer,
+                        name: {
+                            type: Syntax.Identifier,
+                            name: 'postRemoved'
+                        },
+                        body: [{
+                            type: Syntax.TypeProperty,
+                            key: {
+                                type: Syntax.Identifier,
+                                name: 'removeDate'
+                            },
+                            returnType: {
+                                type: Syntax.Identifier,
+                                name: 'uint'
+                            }        
+                        }]
+                    }]
+                }]
+            });
+        });
+
         it('should support deep namespacing', function() {
             const schema = ast.ast(`
                 namespace user {
@@ -76,7 +128,7 @@ describe('AST', function() {
             });
         });
 
-        xit('should support comments inside container', function() {
+        it('should support comments inside container', function() {
             const schema = ast.ast(`
                 user : User {
                     /* user name */
@@ -89,7 +141,7 @@ describe('AST', function() {
                 body: [{
                     body: [{
                         type: Syntax.CommentBlock,
-                        blocks: ['user name']
+                        lines: [' user name ']
                     }, {
                         key: {
                             type: Syntax.Identifier,
@@ -324,18 +376,18 @@ describe('AST', function() {
         });
 
         it('should support comments', function() {
-            deepEqual(ast.ast('--- constructors ---'), {
+            deepEqual(ast.ast('/* constructors */'), {
                 type: Syntax.Schema,
                 body: [{
                     type: Syntax.CommentBlock,
-                    blocks: ['constructors']
+                    lines: [' constructors ']
                 }]
             });
             deepEqual(ast.ast('/* methods */'), {
                 type: Syntax.Schema,
                 body: [{
                     type: Syntax.CommentBlock,
-                    blocks: ['methods']
+                    lines: [' methods ']
                 }]
             });
         });
@@ -393,7 +445,7 @@ describe('AST', function() {
                         }
                     }]
                 }]
-            })
+            });
         });
     });
 });

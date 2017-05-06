@@ -10,6 +10,41 @@ describe('Lexer', function() {
         lexer = new Lexer();
     });
 
+    it('should scan single line comments', function() {
+        deepEqual(lexer.lex(`
+            // this is a comment
+        `), [{
+            type: Token.Comment,
+            end: 33,
+            start: 15,
+            multiLine: false,
+            value: ' this is a comment'
+        }, {
+            type: Token.EOF,
+            start: 34,
+            end: 42
+        }]);
+    });
+
+    it('should scan multi line comments', function() {
+        deepEqual(lexer.lex(`
+            /**
+             * @container comment: test param
+             */
+        `), [{
+            end: 78,
+            start: 15,
+            value: `*
+             * @container comment: test param
+             `,
+            type: Token.Comment
+        }, {
+            type: Token.EOF,
+            start: 78,
+            end: 87
+        }]);
+    });
+
     describe('scanNumericLiteral()', function() {
         const randomHex = new Array(32);
 
@@ -24,10 +59,6 @@ describe('Lexer', function() {
                     type: Token.NumericLiteral,
                     start: 0,
                     value: parseInt(hex, 16)
-                }, {
-                    end: hex.length,
-                    type: Token.EOF,
-                    start: hex.length
                 }]);
             });
         });
@@ -38,10 +69,6 @@ describe('Lexer', function() {
                 type: Token.NumericLiteral,
                 start: 0,
                 value: 9999999
-            }, {
-                end: 7,
-                type: Token.EOF,
-                start: 7
             }]);
         });
 
@@ -51,10 +78,6 @@ describe('Lexer', function() {
                 type: Token.NumericLiteral,
                 start: 0,
                 value: 31.3193
-            }, {
-                end: 7,
-                type: Token.EOF,
-                start: 7
             }]);
         });
     });
@@ -116,10 +139,6 @@ describe('Lexer', function() {
                 value: '}',
                 start: 45,
                 end: 46
-            }, {
-                type: Token.EOF,
-                start: 46,
-                end: 46
             }]);
         });
     });
@@ -130,10 +149,6 @@ describe('Lexer', function() {
                 type: Token.StringLiteral,
                 value: 'literal string',
                 start: 0,
-                end: 16
-            }, {
-                type: Token.EOF,
-                start: 16,
                 end: 16
             }]);
         });

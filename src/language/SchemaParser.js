@@ -38,7 +38,7 @@ class SchemaParser {
         };
     }
 
-    parseAst(ast, parent) {
+    parseAst(ast, parent, context) {
         switch(ast.type) {
         case Syntax.Schema: {
             const containers = [];
@@ -58,10 +58,12 @@ class SchemaParser {
             return containers;
         }
         case Syntax.TypeDeclaration: {
+            const params = this.parseParams(ast.body, ast);
+
             return this._crc({
                 name: this.parseAst(ast.ctor),
                 type: this.parseAst(ast.name),
-                params: ast.body.map(node => this.parseAst(node, ast))
+                params
             });
         }
         case Syntax.Identifier:
@@ -114,16 +116,41 @@ class SchemaParser {
 
             return body;
         }
-        case Syntax.TypeGroup:
-            return ast.body.map(child => this.parseAst(child, ast));
-        case Syntax.TypeGroupContainer:
+        case Syntax.TypeGroup: {
+            const containers = [];
+            const docs = [];
+
+            for(let i = 0; i < ast.body.length; i++) {
+                if(ast.body[i].type != Syntax.CommentBlock) {
+                    continue;
+                }
+
+                docs.push(ast.body[i].lines);
+            }
+            
+            for(let i = 0; i < ast.body.length; i++) {
+                if(ast.body[i].type == Syntax.CommentBlock) {
+                    continue;
+                }
+
+                containers.push({
+                    ...this.parseAst(ast.body[i], ast),
+                    doc: docs.shift() || []
+                });
+            }
+
+            return containers;
+        }
+        case Syntax.TypeGroupContainer: {
             const typeName = this.parseAst(parent.name);
+            const params = this.parseParams(ast.body, ast);
 
             return this._crc({
                 type: typeName,
                 name: this.parseAst(ast.name),
-                params: ast.body.map(child => this.parseAst(child, ast))
+                params
             });
+        }
         case Syntax.TypeProperty: {
             return {
                 type: this.parseAst(ast.returnType),
@@ -137,6 +164,30 @@ class SchemaParser {
         default:
             this.throwError('unhandled ast type: %s', ast.type);
         }
+    }
+
+    parseParams(body, parent) {
+        const params = [];
+        const docs = [];
+
+        for(let i = 0; i < body.length; i++) {
+            if(body[i].type == Syntax.CommentBlock) {
+                docs.push(body[i].lines);
+            }
+        }
+
+        for(let i = 0; i < body.length; i++) {
+            if(body[i].type != Syntax.CommentBlock) {
+                const param = this.parseAst(body[i], parent);
+
+                params.push({
+                    ...param,
+                    doc: docs.shift() || []
+                });
+            }
+        }
+
+        return params;
     }
 
     parseNamespacedContainer({ name, type, params }, allContainers, namespace) {

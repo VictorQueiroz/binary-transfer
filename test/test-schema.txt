@@ -1,4 +1,4 @@
---- constructors ---
+// constructors
 Account account -> id: uint, username: string, email: string;
 
 Void void;

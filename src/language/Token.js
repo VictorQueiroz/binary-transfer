@@ -6,5 +6,6 @@ export const Token = {
     Identifier: 'Identifier',
     Punctuator: 'Punctuator',
     Keyword: 'Keyword',
+    Comment: 'Comment',
     EOF: 'EOF'
 };

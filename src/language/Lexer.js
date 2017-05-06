@@ -27,23 +27,84 @@ class Lexer {
     }
 
     scan() {
-        const token = this.nextToken();
+        const tokens = [];
 
-        if(token) {
-            this.tokens.push(token);
+        while(!this.eof()) {
+            tokens.push(this.nextToken());
         }
 
-        if(!this.eof()) {
-            return this.scan();
-        } else {
-            this.tokens.push(this.nextToken());
+        return tokens;
+    }
+
+    skipSingleLineComment(offset = 0) {
+        const start = this.index - offset;
+        const comments = [];
+
+        while(!this.eof()) {
+            const ch = this.text.charCodeAt(this.index);
+            this.index++;
+
+            if(Character.isLineTerminator(ch)) {
+                const end = this.index - 1;
+                const comment = {
+                    end,
+                    type: Token.Comment,
+                    value: this.text.substring(start + offset, end),
+                    start: start + offset,
+                    multiLine: false
+                };
+                if(ch === 13 && this.text.charCodeAt(this.index) === 10) {
+                    ++this.index;
+                }
+                return comment;
+            }
         }
 
-        return this.tokens;
+        const end = this.index - 1;
+
+        return {
+            end,
+            type: Token.Comment,
+            value: this.text.substring(start + offset, end),
+            start: start + offset,
+            multiLine: false
+        };
+    }
+
+    skipMultiLineComment() {
+        const start = this.index;
+
+        while(!this.eof()) {
+            const ch = this.text.charCodeAt(this.index);
+
+            if(Character.isLineTerminator(ch)) {
+                if(ch === 0x0D && this.text.charCodeAt(this.index + 1) === 0x0A) {
+                    ++this.index;
+                }
+                ++this.index;
+            } else if(ch === 0x2A) {
+                // Block comment ends with '*/'.
+                if(this.text.charCodeAt(this.index + 1) === 0x2F) {
+                    this.index += 2;
+
+                    return {
+                        type: Token.Comment,
+                        start,
+                        end: this.index,
+                        value: this.text.substring(start, this.index - 2)
+                    };
+                }
+                ++this.index;
+            } else {
+                ++this.index;
+            }
+        }
+
+        this.throwError('unexpected end of comment block at index %s', this.index);
     }
 
     nextToken(start = this.index) {
-        const ch = this.text.charCodeAt(this.index);
+        let ch = this.text.charCodeAt(this.index);
 
         if(this.eof()) {
             return {
@@ -56,6 +117,18 @@ class Lexer {
         if(Character.isWhiteSpace(ch) || Character.isLineTerminator(ch)) {
             this.index++;
             return this.nextToken(start);
+        }
+
+        if(ch === 0x2F) { // U+002F is '/'
+            ch = this.text.charCodeAt(this.index + 1);
+
+            if(ch === 0x2F) {
+                this.index += 2;
+                return this.skipSingleLineComment(2);
+            } else if(ch === 0x2A) { // U+002A is '*'
+                this.index += 2;
+                return this.skipMultiLineComment();
+            }
         }
 
         if(Character.isDecimalDigit(ch)) {

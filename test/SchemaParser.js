@@ -89,18 +89,56 @@ describe('SchemaParser', function() {
         `), [{
             id: 3530048371,
             params: [],
+            doc: [],
             name: 'post',
             type: 'Post'
         }, {
             id: 4067641446,
             name: 'postEdited',
+            doc: [],
             params: [],
             type: 'Post'
         }, {
             id: 1962839665,
             name: 'postDeleted',
+            doc: [],
             params: [],
             type: 'Post'
+        }]);
+    });
+
+    it('should add documentation notation for container properties', function() {
+        assert.deepEqual(schemaParser.parse(`
+            type User {
+                user
+                userDeleted
+                userMoved {
+                    // new user id
+                    userId: uint;
+                }
+            }
+        `), [{
+            id: 997141463,
+            doc: [],
+            name: 'user',
+            params: [],
+            type: 'User'
+        }, {
+            id: 988423833,
+            doc: [],
+            name: 'userDeleted',
+            params: [],
+            type: 'User'
+        }, {
+            id: 1994514502,
+            doc: [],
+            name: 'userMoved',
+            params: [{
+                type: 'uint',
+                name: 'userId',
+                doc: [' new user id']
+            }],
+            type: 'User'
         }]);
     });
 
@@ -136,6 +174,34 @@ describe('SchemaParser', function() {
             name: 'accounts.account',
             params: [],
             type: 'accounts.Account'
+        }]);
+    });
+
+    it('should parse comments of constructors inside quick container group typing', function() {
+        assert.deepEqual(schemaParser.parse(`
+            type Post {
+                /* default post */
+                postDefault;
+
+                /* removed post */
+                postRemoved -> removeDate: uint;
+            }
+        `), [{
+            id: 3712632172,
+            doc: [' default post '],
+            params: [],
+            type: 'Post',
+            name: 'postDefault'
+        }, {
+            id: 2402650323,
+            params: [{
+                type: 'uint',
+                name: 'removeDate',
+                doc: []
+            }],
+            doc: [' removed post '],
+            type: 'Post',
+            name: 'postRemoved'
         }]);
     });
 
@@ -183,7 +249,7 @@ describe('SchemaParser', function() {
 
     it('should parse schema constructors', function() {
         assert.deepEqual(schemaParser.parse(`
-            --- types ---
+            // types
             Account account -> id: int, username: string, email: string;
             Void void;
         `), [{
@@ -191,13 +257,16 @@ describe('SchemaParser', function() {
             type: 'Account',
             params: [{
                 type: 'int',
-                name: 'id'
+                name: 'id',
+                doc: []
             }, {
                 type: 'string',
-                name: 'username'
+                name: 'username',
+                doc: []
             }, {
                 name: 'email',
-                type: 'string'
+                type: 'string',
+                doc: []
             }],
             name: 'account'
         }, {
@@ -214,7 +283,8 @@ describe('SchemaParser', function() {
             type: 'user.User',
             params: [{
                 type: 'int',
-                name: 'id'
+                name: 'id',
+                doc: []
             }],
             name: 'user.userRegular'
         }]);
