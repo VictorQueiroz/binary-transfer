@@ -27,7 +27,9 @@ describe('SchemaParser', function() {
             }
         `), [{
             id: 3858428844,
+            doc: [],
             params: [{
+                doc: [],
                 type: 'string',
                 name: 'body'
             }],
@@ -35,7 +37,9 @@ describe('SchemaParser', function() {
             name: 'posts.comment'
         }, {
             id: 3660060063,
+            doc: [],
             params: [{
+                doc: [],
                 type: 'uint',
                 name: 'deleteDate'
             }],
@@ -44,14 +48,32 @@ describe('SchemaParser', function() {
         }, {
             id: 3650725341,
             name: 'posts.post',
+            doc: [],
             params: [{
+                doc: [],
                 type: 'string',
                 name: 'name'
             }, {
+                doc: [],
                 type: 'Vector<posts.Comment>',
                 name: 'comments'
             }],
             type: 'posts.Post'
+        }]);
+    });
+
+    it('should support comments for containers inside namespaces', function() {
+        assert.deepEqual(schemaParser.parse(`
+            namespace post {
+                /* default post */
+                post : Post
+            }
+        `), [{
+            id: 1566593625,
+            doc: [" default post "],
+            params: [],
+            type: 'post.Post',
+            name: 'post.post'
         }]);
     });
 
@@ -69,16 +91,20 @@ describe('SchemaParser', function() {
             }
         `), [{
             id: 1341726436,
+            doc: [],
             name: 'post.post',
             params: [{
+                doc: [],
                 type: 'Vector<post.comment>',
                 name: 'comments'
             }],
             type: 'post.Post'
         }, {
             id: 3709037810,
+            doc: [],
             name: 'post.comment',
             params: [{
+                doc: [],
                 name: 'id',
                 type: 'uint'
             }],
@@ -99,10 +125,13 @@ describe('SchemaParser', function() {
         `), [{
             id: 4144526986,
             name: 'posts.post',
+            doc: [],
             params: [{
+                doc: [],
                 type: 'string',
                 name: 'name'
             }, {
+                doc: [],
                 type: 'Vector<Comment>',
                 name: 'comments'
             }],
@@ -186,22 +215,31 @@ describe('SchemaParser', function() {
             }
         `), [{
             id: 3738258975,
+            doc: [],
             name: 'user.user',
-            params: [{type: 'uint', name: 'id'}],
+            params: [{
+                doc: [],
+                type: 'uint',
+                name: 'id'
+            }],
             type: 'user.User'
         }, {
             id: 360725528,
+            doc: [],
             name: 'posts.post',
             params: [{
+                doc: [],
                 type: 'user.User',
                 name: 'author'
             }, {
+                doc: [],
                 type: 'accounts.Account',
                 name: 'account'
             }],
             type: 'posts.Post'
         }, {
             id: 3950322327,
+            doc: [],
             name: 'accounts.account',
             params: [],
             type: 'accounts.Account'
@@ -249,22 +287,27 @@ describe('SchemaParser', function() {
             }
         `), [{
             id: 3033453801,
+            doc: [],
             name: 'posts.postDefault',
             type: 'posts.Post',
             params: []
         }, {
             id: 2353734871,
+            doc: [],
             name: 'posts.postRemoved',
             type: 'posts.Post',
             params: []
         }, {
             id: 494542836,
+            doc: [],
             name: 'posts.postDeleted',
             type: 'posts.Post',
             params: []
         }, {
             id: 1836829228,
+            doc: [],
             params: [{
+                doc: [],
                 type: 'posts.Comment',
                 name: 'comment'
             }],
@@ -272,6 +315,7 @@ describe('SchemaParser', function() {
             type: 'posts.Post'
         }, {
             id: 85418714,
+            doc: [],
             name: 'posts.comment',
             params: [],
             type: 'posts.Comment'
@@ -280,11 +324,11 @@ describe('SchemaParser', function() {
 
     it('should parse schema constructors', function() {
         assert.deepEqual(schemaParser.parse(`
-            // types
             Account account -> id: int, username: string, email: string;
             Void void;
         `), [{
             id: 186715902,
+            doc: [],
             type: 'Account',
             params: [{
                 type: 'int',
@@ -302,6 +346,7 @@ describe('SchemaParser', function() {
             name: 'account'
         }, {
             id: 2178958158,
+            doc: [],
             type: 'Void',
             params: [],
             name: 'void'
@@ -311,6 +356,7 @@ describe('SchemaParser', function() {
     it('should parse namespaced constructors', function() {
         assert.deepEqual(schemaParser.parse('user.User user.userRegular -> id: int;'), [{
             id: 4060771189,
+            doc: [],
             type: 'user.User',
             params: [{
                 type: 'int',

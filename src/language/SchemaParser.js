@@ -41,6 +41,7 @@ class SchemaParser {
     parseAst(ast, parent, context) {
         switch(ast.type) {
         case Syntax.Schema: {
+            const docs = this.getDocs(ast.body);
             const containers = [];
 
             ast.body.forEach(node => {
@@ -49,9 +50,13 @@ class SchemaParser {
                 case Syntax.Namespace:
                     containers.push(...this.parseAst(node, ast));
                     break;
-                case Syntax.TypeDeclaration:
-                    containers.push(this.parseAst(node, ast));
+                case Syntax.TypeDeclaration: {
+                    const container = this.parseAst(node, ast);
+
+                    container.doc = docs.shift() || [];
+                    containers.push(container);
                     break;
+                }
                 }
             });
 
@@ -76,6 +81,7 @@ class SchemaParser {
                 namespace = `${this.parseAst(parent.name)}.${namespace}`;
             }
 
+            const docs = this.getDocs(ast.body);
             const containers = [];
             const { body : astBody } = ast;
 
@@ -99,16 +105,21 @@ class SchemaParser {
                         body.push(this.parseNamespacedContainer(parsed[j], containers, namespace));
                     }
                     break;
-                case Syntax.TypeDeclaration:
-                    body.push(this.parseNamespacedContainer(this.parseAst(astBody[i]), containers, namespace));
+                case Syntax.TypeDeclaration: {
+                    const container = this.parseAst(astBody[i]);
+
+                    container.doc = docs.shift() || [];
+
+                    body.push(this.parseNamespacedContainer(container, containers, namespace));
                     break;
+                }
                 }
             }
 
-            for(let i = 0; i < ast.body.length; i++) {
-                switch(ast.body[i].type) {
+            for(let i = 0; i < astBody.length; i++) {
+                switch(astBody[i].type) {
                 case Syntax.Namespace:
-                    body.push(...this.parseAst(ast.body[i], ast, containers.concat(body)));
+                    body.push(...this.parseAst(astBody[i], ast, containers.concat(body)));
                     break;
                 }
 
@@ -118,15 +129,7 @@ class SchemaParser {
         }
         case Syntax.TypeGroup: {
             const containers = [];
-            const docs = [];
-
-            for(let i = 0; i < ast.body.length; i++) {
-                if(ast.body[i].type != Syntax.CommentBlock) {
-                    continue;
-                }
-
-                docs.push(ast.body[i].lines);
-            }
+            const docs = this.getDocs(ast.body);
             
             for(let i = 0; i < ast.body.length; i++) {
                 if(ast.body[i].type == Syntax.CommentBlock) {
@@ -146,6 +149,7 @@ class SchemaParser {
             const params = this.parseParams(ast.body, ast);
 
             return this._crc({
+                doc: [],
                 type: typeName,
                 name: this.parseAst(ast.name),
                 params
@@ -154,7 +158,8 @@ class SchemaParser {
         case Syntax.TypeProperty: {
             return {
                 type: this.parseAst(ast.returnType),
-                name: this.parseAst(ast.key)
+                name: this.parseAst(ast.key),
+                doc: []
             };
         }
         case Syntax.TypeIdentifier:
@@ -166,15 +171,13 @@ class SchemaParser {
         }
     }
 
+    getDocs(nodes) {
+        return nodes.filter(node => node.type == Syntax.CommentBlock).map(node => node.lines);
+    }
+
     parseParams(body, parent) {
         const params = [];
-        const docs = [];
-
-        for(let i = 0; i < body.length; i++) {
-            if(body[i].type == Syntax.CommentBlock) {
-                docs.push(body[i].lines);
-            }
-        }
+        const docs = this.getDocs(body);
 
         for(let i = 0; i < body.length; i++) {
             if(body[i].type != Syntax.CommentBlock) {
@@ -190,8 +193,9 @@ class SchemaParser {
         return params;
     }
 
-    parseNamespacedContainer({ name, type, params }, allContainers, namespace) {
+    parseNamespacedContainer({ name, type, params, doc }, allContainers, namespace) {
         return this._crc({
+            doc,
             name: `${namespace}.${name}`,
             type: BaseConstructor.isGenericType(type) ? type : `${namespace}.${type}`,
             params: params.map(param => {
@@ -209,6 +213,7 @@ class SchemaParser {
                 }
 
                 return {
+                    doc: param.doc || [],
                     name: param.name,
                     type
                 };
