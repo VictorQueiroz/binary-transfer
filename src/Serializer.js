@@ -58,6 +58,22 @@ class Serializer {
         this.addBuffer(buffer);
     }
 
+    /**
+     * Encode string into bytes
+     * @param  {String} string String to be encoded
+     * @return {Buffer}        UTF-8 encoded buffer
+     */
+    _encodeString(string) {
+        const sUTF8 = unescape(encodeURIComponent(string));
+        const bytes = Buffer.allocUnsafe(sUTF8.length);
+
+        for(let i = 0; i < sUTF8.length; i++) {
+            bytes.writeUInt8(sUTF8.codePointAt(i), i);
+        }
+
+        return bytes;
+    }
+
     _formatLong(long, unsigned) {
         if(isNumber(long)) {
             return this._formatLong(Long.fromNumber(long, unsigned, 10));
@@ -100,14 +116,7 @@ class Serializer {
     }
 
     writeString(string) {
-        const sUTF8 = unescape(encodeURIComponent(string));
-        const bytes = Buffer.allocUnsafe(sUTF8.length);
-
-        for(let i = 0; i < sUTF8.length; i++) {
-            bytes.writeUInt8(sUTF8.codePointAt(i), i);
-        }
-
-        this.writeBytes(bytes);
+        this.writeBytes(this._encodeString(string));
     }
 
     writeBytes(bytes) {
