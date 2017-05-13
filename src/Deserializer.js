@@ -52,11 +52,15 @@ class Deserializer {
         const bytes = this._readBytes(1);
         const bool = bytes.readUInt8(0);
 
-        if(bool == 1) {
+        if(bool === 1) {
             return true;
         }
 
-        return false;
+        if(bool === 0) {
+            return false;
+        }
+
+        this.onError('Unexpected %s value for bool. Valid inputs are: 0 or 1', bool);
     }
 
     readString() {

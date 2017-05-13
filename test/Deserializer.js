@@ -32,4 +32,16 @@ describe('Deserializer', function() {
             assert.equal(deserializer.offset, deserializer.buffer.byteLength);
         });
     });
+
+    describe('readBool()', function() {
+        it('should throw if unexpected value is give for bools', function() {
+            const buffer = Buffer.alloc(1);
+            buffer.writeUInt8(2, 0);
+
+            deserializer = new Deserializer(buffer);
+            assert.throws(function() {
+                deserializer.readBool();
+            });
+        });
+    });
 });
