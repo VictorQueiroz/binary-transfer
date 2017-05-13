@@ -58,3 +58,5 @@ alias ObjectId = bytes[12]
 alias ShortCharacters = string[8]
 
 comment : Comment -> id: ObjectId, description: ShortCharacters
+
+postDeleted : Post -> comments: Vector<Comment>

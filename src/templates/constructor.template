@@ -34,6 +34,10 @@ class {{constructorName}} extends {{ typeFileData.context.constructorName }} {
     static createConstructor(props) {
         return new {{ constructorName }}(props);
     }
+
+    createVector(...args) {
+        return new Vector(...args);
+    }
 }
 
 ConstructorStore.register({{ predicate.id }}, {{ constructorName }});

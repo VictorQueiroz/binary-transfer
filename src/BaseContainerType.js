@@ -46,7 +46,17 @@ class BaseContainerType extends BaseConstructor {
                 return true;
             }
 
-            this._handleMissingProperty(param.key, param.genericType);
+            switch(param.type) {
+            case ParamEnum.GENERIC:
+                this._handleMissingProperty(param.key, param.genericType);
+                break;
+            case ParamEnum.GENERIC | ParamEnum.VECTOR:
+                this[param.key] = this.createVector({
+                    type: param.vectorOf,
+                    items: []
+                });
+                break;
+            }
         });
 
         if(options.hasOwnProperty('_props')) {

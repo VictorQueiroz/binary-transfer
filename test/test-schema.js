@@ -24,6 +24,15 @@ describe('TestSchema', function() {
         });
     });
 
+    it('should find default value for vector', function () {
+        assert.deepEqual(new test.PostDeleted(), new test.PostDeleted({
+            comments: new Vector({
+                type: 'Comment',
+                items: []
+            })
+        }));
+    });
+
     describe('strict size', function() {
         it('should support strict size types', function() {
             const id = crypto.randomBytes(12);
