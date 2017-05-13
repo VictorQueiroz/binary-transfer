@@ -5,6 +5,7 @@ tdd: build_test_schema
 	--colors \
 	--bail \
 	--watch \
+	--inspect \
 	--require babel-register \
 	--check-leaks
 
