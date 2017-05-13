@@ -90,8 +90,27 @@ class AST {
         if(this.expect('type')) {
             return this.typeGroup();
         }
+        if(this.expect('alias')) {
+            return this.genericAlias();
+        }
 
         return this.typeDeclaration();
+    }
+
+    genericAlias() {
+        const aliasName = this.identifier();
+
+        this.consume('=');
+
+        const genericTarget = this.typeIdentifier();
+
+        this.expect(';');
+
+        return {
+            type: Syntax.GenericAlias,
+            aliasName,
+            genericTarget
+        };
     }
 
     comment() {

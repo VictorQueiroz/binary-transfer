@@ -6,6 +6,7 @@ export const Syntax = {
     TypeGroup: 'TypeGroup',
     Namespace: 'Namespace',
     Identifier: 'Identifier',
+    GenericAlias: 'GenericAlias',
     CommentBlock: 'CommentBlock',
     TypeProperty: 'TypeProperty',
     TypeIdentifier: 'TypeIdentifier',

@@ -10,11 +10,16 @@ class SchemaParser {
     }
 
     parse(schema) {
+        this.aliases = [];
+        this.containers = [];
+
         if(Buffer.isBuffer(schema)) {
             return this.parse(schema.toString('utf8'));
         }
 
-        return this.parseAst(this.ast.ast(schema));
+        this.parseAst(this.ast.ast(schema));
+
+        return this.containers;
     }
 
     _crc(ctor) {
@@ -38,29 +43,40 @@ class SchemaParser {
         };
     }
 
-    parseAst(ast, parent, context) {
+    parseAst(ast, parent) {
         switch(ast.type) {
         case Syntax.Schema: {
             const docs = this.getDocs(ast.body);
-            const containers = [];
+            const collected = [];
+
+            ast.body.forEach(node => {
+                switch(node.type) {
+                case Syntax.GenericAlias:
+                    this.aliases[this.parseAst(node.aliasName)] = this.parseAst(node.genericTarget);
+                }
+            });
 
             ast.body.forEach(node => {
                 switch(node.type) {
                 case Syntax.TypeGroup:
-                case Syntax.Namespace:
-                    containers.push(...this.parseAst(node, ast));
+                case Syntax.Namespace: {
+                    const containers = this.parseAst(node, ast);
+
+                    for(let i = 0; i < containers.length; i++) {
+                        this.containers.push(containers[i]);
+                    }
                     break;
+                }
                 case Syntax.TypeDeclaration: {
                     const container = this.parseAst(node, ast);
 
                     container.doc = docs.shift() || [];
-                    containers.push(container);
+                    this.containers.push(container);
                     break;
                 }
                 }
             });
-
-            return containers;
+            break;
         }
         case Syntax.TypeDeclaration: {
             const params = this.parseParams(ast.body, ast);
@@ -88,10 +104,10 @@ class SchemaParser {
             astBody.forEach(c => {
                 switch(c.type) {
                 case Syntax.TypeDeclaration:
-                    containers.push(this.parseAst(c));
+                    containers.push(this.parseAst(c, ast));
                     break;
                 case Syntax.TypeGroup:
-                    containers.push(...this.parseAst(c));
+                    containers.push(...this.parseAst(c, ast));
                     break;
                 }
             });
@@ -99,7 +115,7 @@ class SchemaParser {
             for(let i = 0; i < astBody.length; i++) {
                 switch(astBody[i].type) {
                 case Syntax.TypeGroup:
-                    const parsed = this.parseAst(astBody[i]);
+                    const parsed = this.parseAst(astBody[i], ast);
 
                     for(let j = 0; j < parsed.length; j++) {
                         body.push(this.parseNamespacedContainer(parsed[j], containers, namespace));
@@ -156,8 +172,14 @@ class SchemaParser {
             });
         }
         case Syntax.TypeProperty: {
+            let returnType = this.parseAst(ast.returnType);
+
+            if(this.aliases.hasOwnProperty(returnType)) {
+                returnType = this.aliases[returnType];
+            }
+
             return {
-                type: this.parseAst(ast.returnType),
+                type: returnType,
                 name: this.parseAst(ast.key),
                 doc: []
             };
