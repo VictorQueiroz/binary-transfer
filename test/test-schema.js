@@ -413,7 +413,6 @@ describe('TestSchema', function() {
         });
 
         deserializer = new Deserializer(bytes);
-        assert.equal(Vector._id, deserializer._readBytes(4).readUInt32LE(0));
         assert.equal(1, deserializer.readUInt());
         assert.equal(test.players.Player._id, deserializer._readBytes(4).readUInt32LE(0));
         assert.equal(100, deserializer.readInt());
@@ -444,7 +443,6 @@ describe('TestSchema', function() {
         });
 
         deserializer = new Deserializer(bytes);
-        assert.ok(Vector._id, deserializer._readBytes(4).readUInt32LE(0));
         assert.equal(5, deserializer.readUInt());
         assert.equal(1, deserializer.readInt());
         assert.equal(2, deserializer.readInt());
@@ -489,7 +487,6 @@ describe('TestSchema', function() {
         });
 
         deserializer = new Deserializer(bytes);
-        assert.equal(Vector._id, deserializer._readBytes(4).readUInt32LE(0));
         assert.equal(5, deserializer.readUInt());
         assert.equal('a', deserializer.readString());
         assert.equal('b', deserializer.readString());
@@ -587,7 +584,7 @@ describe('TestSchema', function() {
         });
 
         assert.equal(bytes.readUInt32LE(8), test.Account._id);
-        bytes.writeUInt32LE(Vector._id, 8);
+        bytes.writeUInt32LE(8, 8);
 
         assert.throws(function() {
             test.Post.decode({

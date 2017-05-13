@@ -4,18 +4,10 @@ import Serializer from './Serializer';
 import Deserializer from './Deserializer';
 import BaseConstructor from './BaseConstructor';
 
-const VECTOR_HEADER = 8;
-
-const header = Buffer.alloc(4);
-header.writeUInt32LE(VECTOR_HEADER, 0);
-
 class BaseVector extends BaseConstructor {
-    static _id = header.readUInt32LE(0);
-
     constructor(options) {
         super();
 
-        this._name = 'vector';
         this.type = options.type;
         this.items = options.items;
 
@@ -41,7 +33,6 @@ class BaseVector extends BaseConstructor {
         const serializer = new Serializer();
         const length = items.length;
 
-        serializer.addBuffer(header);
         serializer.writeUInt(length);
 
         const isGeneric = BaseConstructor.isGenericType(options.type);
@@ -63,12 +54,6 @@ class BaseVector extends BaseConstructor {
 
     static decode(options) {
         const deserializer = options.hasOwnProperty('deserializer') ? options.deserializer : new Deserializer(options.buffer);
-        const header = deserializer._readBytes(4);
-
-        if(!header.equals(header)) {
-            this.onError('Invalid header for vector.', 'Expected %s but got %s', BaseVector._id, header.readUInt32LE(0));
-            return false;
-        }
 
         const length = deserializer.readUInt();
         const array = new Array(length);
