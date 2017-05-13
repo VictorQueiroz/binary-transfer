@@ -134,11 +134,15 @@ class BaseVector extends BaseConstructor {
         });
     }
 
-    toJSON() {
-       return this.items;
+    toPlainObject() {
+        return this.toJS();
     }
 
-    toPlainObject() {
+    toJSON() {
+       return this.toJS();
+    }
+
+    toJS() {
         const itemsLength = this.size();
         const result = new Array(itemsLength);
 
