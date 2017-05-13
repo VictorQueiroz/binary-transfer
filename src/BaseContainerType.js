@@ -144,24 +144,29 @@ class BaseContainerType extends BaseConstructor {
         this[key] = value;
     }
 
-    serialize() {
+    serialize(options) {
         const object = {};
+        const paramsLength = this._params.length;
 
-        this._params.forEach(param => {
-            switch(param.type) {
+        for(let i = 0; i < paramsLength; i++) {
+            const { type, key } = this._params[i];
+
+            switch(type) {
             case ParamEnum.GENERIC:
             case ParamEnum.GENERIC | ParamEnum.GENERIC_STRICT_SIZE:
-                object[param.key] = this[param.key];
+                object[key] = this[key];
                 break;
             case ParamEnum.CONTAINER_REFERENCE:
             case ParamEnum.CONTAINER_TYPE_REFERENCE:
             case ParamEnum.GENERIC | ParamEnum.VECTOR:
-                object[param.key] = this[param.key].serialize();
+                object[key] = this[key].serialize({
+                    header: type & ParamEnum.CONTAINER_TYPE_REFERENCE
+                });
                 break;
             }
-        });
+        }
 
-        return this.constructor.encode(object);
+        return this.constructor.encode(object, options);
     }
 
     _validateVector(property, value, type) {
@@ -207,11 +212,13 @@ class BaseContainerType extends BaseConstructor {
         }
     } 
 
-    static encode(object) {
+    static encode(object, options = {}) {
         const serializer = new Serializer();
 
         // write header
-        serializer.addBuffer(this._header);
+        if(!options.hasOwnProperty('header') || options.header) {
+            serializer.addBuffer(this._header);
+        }
 
         for(let i = 0; i < this._params.length; i++) {
             const param = this._params[i];
@@ -244,12 +251,15 @@ class BaseContainerType extends BaseConstructor {
         const result = {};
 
         // validate first 4 bytes
-        const header = deserializer._readBytes(4);
         const params = this._params;
         const paramsLength = params.length;
 
-        if(process.env.NODE_ENV != 'production') {
-            this.validate(header);
+        if(!options.hasOwnProperty('header') || options.header) {
+            const header = deserializer._readBytes(4);
+
+            if(process.env.NODE_ENV != 'production') {
+                this.validate(header);
+            }
         }
 
         for(let i = 0; i < paramsLength; i++) {
@@ -270,7 +280,7 @@ class BaseContainerType extends BaseConstructor {
                 break;
             case ParamEnum.CONTAINER_REFERENCE:
             case ParamEnum.CONTAINER_TYPE_REFERENCE:
-                if(process.env.NODE_ENV != 'production') {
+                if(process.env.NODE_ENV != 'production' && (param.type & ParamEnum.CONTAINER_TYPE_REFERENCE)) {
                     let found = false;
                     const ids = param.possibleIds;
                     const header = deserializer.buffer.readUInt32LE(deserializer.offset);
@@ -298,6 +308,7 @@ class BaseContainerType extends BaseConstructor {
                     Constructor = this._store.findConstructorFromBuffer(deserializer.buffer.slice(deserializer.offset));
 
                 result[param.key] = Constructor.decode({
+                    header: param.type & ParamEnum.CONTAINER_TYPE_REFERENCE,
                     deserializer
                 });
                 break;

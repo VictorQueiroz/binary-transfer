@@ -612,22 +612,31 @@ describe('TestSchema', function() {
         });
         const bytes = book.serialize();
 
-        assert(test.Book.decode(new Deserializer(bytes)).serialize().equals(bytes));
+        assert(test.Book.decode({
+            buffer: bytes
+        }).serialize().equals(bytes));
     });
 
     it('should throw if a different than the expected constructor is given', function() {
         assert.throws(function() {
-            new test.Book({
-                id: 3881,
-                author: new test.BoolTrue()
+            new test.Session({
+                location: new test.BoolTrue()
             });
-        }, /invalid constructor for param "author". expected players.player but got boolTrue instead/);
+        }, /invalid type for param \"location\". expected GeoPoint but got Bool instead/);
 
         assert.throws(function() {
-            test.Book.decode(new Deserializer(test.Book.encode({
-                id: 37731,
-                author: test.BoolTrue.encode()
-            })));
-        }, new RegExp(`invalid header for param \"author\". expected ${test.players.Player._id} but got ${test.BoolTrue._id} instead`));
+            test.Session.decode({
+                buffer: test.Session.encode({
+                    location: test.BoolTrue.encode()
+                })
+            });
+        }, /invalid header for param \"location\". expected 1278047137 but got 2570224863 instead/);
+
+        assert.throws(function() {
+            new test.Book({
+                id: 2003,
+                author: new test.BoolTrue()
+            });
+        });
     });
 });
