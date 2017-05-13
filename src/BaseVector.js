@@ -165,30 +165,28 @@ const proto = BaseVector.prototype;
 // lodash methods
 _.forEach([
     // array
-    'chunk', 'compact', 'concat', 'difference',
-    'differenceBy', 'differenceWith', 'drop',
-    'dropRight', 'dropRightWhile', 'dropWhile',
-    'fill', 'findIndex', 'findLastIndex', 'flatten',
-    'flattenDeep', 'flattenDepth', 'fromPairs', 'first',
-    'head', 'indexOf', 'initial', 'intersection', 'intersectionBy',
+    'chunk', 'compact', 'concat', 'difference', 'differenceBy',
+    'differenceWith', 'drop', 'dropRight', 'dropRightWhile',
+    'dropWhile', 'fill', 'findIndex', 'findLastIndex', 'flatten',
+    'flattenDeep', 'flattenDepth', 'fromPairs', 'first', 'head',
+    'indexOf', 'initial', 'intersection', 'intersectionBy',
     'intersectionWith', 'join', 'last', 'lastIndexOf',
     'nth', 'pull', 'pullAll', 'pullAllBy', 'pullAllWith',
     'pullAt', 'remove', 'reverse', 'slice', 'sortedIndex',
     'sortedIndexBy', 'sortedIndexOf', 'sortedLastIndex',
     'sortedLastIndexBy', 'sortedLastIndexOf', 'sortedUniq',
-    'sortedUniqBy', 'tail', 'take', 'takeRight',
-    'takeRightWhile', 'takeWhile', 'union', 'unionBy',
-    'unionWith', 'uniq', 'uniqBy', 'uniqWith', 'unzip',
-    'unzipWith', 'without', 'xor', 'xorBy', 'xorWith',
-    'zip', 'zipObject', 'zipObjectDeep', 'zipWith',
+    'sortedUniqBy', 'tail', 'take', 'takeRight', 'takeRightWhile',
+    'takeWhile', 'union', 'unionBy', 'unionWith', 'uniq', 'uniqBy',
+    'uniqWith', 'unzip', 'unzipWith', 'without', 'xor', 'xorBy',
+    'xorWith', 'zip', 'zipObject', 'zipObjectDeep', 'zipWith',
 
     // collection
     'countBy', 'each', 'forEach', 'eachRight', 'forEachRight',
     'every', 'filter', 'find', 'findLast', 'flatMap', 'flatMapDeep',
-    'flatMapDepth', 'forEach', 'forEachRight', 'groupBy', 'includes',
-    'invokeMap', 'keyBy', 'map', 'orderBy', 'partition', 'reduce',
-    'reduceRight', 'reject', 'sample', 'sampleSize', 'shuffle',
-    'size', 'some', 'sortBy'
+    'flatMapDepth', 'forEach', 'groupBy', 'includes', 'invokeMap',
+    'keyBy', 'map', 'orderBy', 'partition', 'reduce', 'reduceRight',
+    'reject', 'sample', 'sampleSize', 'shuffle', 'size', 'some',
+    'sortBy'
 ], key => {
     proto[key] = function(...args) {
         return _[key](this.items, ...args);
