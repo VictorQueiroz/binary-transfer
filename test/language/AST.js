@@ -31,6 +31,61 @@ describe('AST', function() {
             });
         });
 
+        it('should support strict size types', function() {
+            const schema = ast.ast(`
+                alias ObjectId = bytes[12]
+
+                type Post {
+                    post -> id: ObjectId
+                }
+            `);
+            deepEqual(schema, {
+                type: Syntax.Schema,
+                body: [{
+                    type: Syntax.GenericAlias,
+                    aliasName: {
+                        type: Syntax.Identifier,
+                        name: 'ObjectId'
+                    },
+                    genericTarget: {
+                        type: Syntax.TypeSizeSpecification,
+                        name: {
+                            type: Syntax.Identifier,
+                            name: 'bytes'
+                        },
+                        size: {
+                            type: Syntax.Literal,
+                            value: 12
+                        }
+                    }
+                }, {
+                    type: Syntax.TypeGroup,
+                    body: [{
+                        type: Syntax.TypeGroupContainer,
+                        name: {
+                            type: Syntax.Identifier,
+                            name: 'post'
+                        },
+                        body: [{
+                            type: Syntax.TypeProperty,
+                            key: {
+                                name: 'id',
+                                type: Syntax.Identifier
+                            },
+                            returnType: {
+                                type: Syntax.Identifier,
+                                name: 'ObjectId'
+                            }
+                        }]
+                    }],
+                    name: {
+                        type: Syntax.Identifier,
+                        name: 'Post'
+                    }
+                }]
+            });
+        });
+
         it('should support generic types alias', function() {
             const schema = ast.ast(`
                 alias ObjectId = bytes;

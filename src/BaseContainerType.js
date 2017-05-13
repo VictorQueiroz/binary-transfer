@@ -75,7 +75,12 @@ class BaseContainerType extends BaseConstructor {
 
                 switch(param.type) {
                 case ParamEnum.GENERIC:
+                case ParamEnum.GENERIC | ParamEnum.GENERIC_STRICT_SIZE:
                     this._validateGenericProperty(property, value, param.genericType);
+                    
+                    if(param.type & ParamEnum.GENERIC_STRICT_SIZE) {
+                        this._validateGenericStrictSizeProperty(property, value, param.genericType, param.specificSize);
+                    }
                     break;
                 case ParamEnum.GENERIC | ParamEnum.VECTOR:
                     this._validateVector(property, value, param.vectorOf);
@@ -88,6 +93,23 @@ class BaseContainerType extends BaseConstructor {
                     this.onError('Invalid type for param "%s" on container %s', param.key, this._name);
                 }
             });
+        }
+    }
+
+    _validateGenericStrictSizeProperty(property, value, genericType, specificSize) {
+        switch(genericType) {
+        case 'string':
+            if(value.length != specificSize) {
+                this.onError('Expected %s with %s length but got %s length', 'string', specificSize, value.length);
+            }
+            break;
+        case 'bytes':
+            if(value.byteLength != specificSize) {
+                this.onError('Expected %s with %s bytes but got %s bytes', 'buffer', specificSize, value.byteLength);
+            }
+            break;
+        default:
+            this.onError(`no validation rule defined for generic type ${genericType} when used in strict size proposition`);
         }
     }
 
@@ -128,6 +150,7 @@ class BaseContainerType extends BaseConstructor {
         this._params.forEach(param => {
             switch(param.type) {
             case ParamEnum.GENERIC:
+            case ParamEnum.GENERIC | ParamEnum.GENERIC_STRICT_SIZE:
                 object[param.key] = this[param.key];
                 break;
             case ParamEnum.CONTAINER_REFERENCE:
@@ -158,6 +181,32 @@ class BaseContainerType extends BaseConstructor {
         return this.toPlainObject();
     }
 
+    static encodeGenericStrictSize(object, serializer, param) {
+        const value = object[param.key];
+
+        switch(param.genericType) {
+        case 'bytes':
+            serializer.addBuffer(value);
+            break;
+        case 'string':
+            serializer.addBuffer(serializer._encodeString(value));
+            break;
+        default:
+            throw new Error(`Unhandled encoding of generic strict size for type "${param.genericType}"`);
+        }
+    }
+
+    static decodeGenericStrictSize(deserializer, param) {
+        switch(param.genericType) {
+        case 'bytes':
+            return deserializer._readBytes(param.specificSize);
+        case 'string':
+            return deserializer._readString(deserializer._readBytes(param.specificSize));
+        default:
+            throw new Error(`Unhandled decoding of generic strict size for type "${param.genericType}"`);
+        }
+    } 
+
     static encode(object) {
         const serializer = new Serializer();
 
@@ -168,6 +217,9 @@ class BaseContainerType extends BaseConstructor {
             const param = this._params[i];
 
             switch(param.type) {
+            case ParamEnum.GENERIC | ParamEnum.GENERIC_STRICT_SIZE:
+                this.encodeGenericStrictSize(object, serializer, param);
+                break;
             case ParamEnum.GENERIC:
                 serializer[`write${param.method}`](object[param.key]);
                 break;
@@ -206,6 +258,9 @@ class BaseContainerType extends BaseConstructor {
             switch(param.type) {
             case ParamEnum.GENERIC:
                 result[param.key] = deserializer[`read${param.method}`]();
+                break;
+            case ParamEnum.GENERIC | ParamEnum.GENERIC_STRICT_SIZE:
+                result[param.key] = this.decodeGenericStrictSize(deserializer, param);
                 break;
             case ParamEnum.GENERIC | ParamEnum.VECTOR:
                 result[param.key] = this._Vector.decode({

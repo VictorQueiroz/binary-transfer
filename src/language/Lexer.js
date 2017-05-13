@@ -286,6 +286,8 @@ class Lexer {
         case ',':
         case '<':
         case '>':
+        case '[':
+        case ']':
         case '{':
         case '}':
             this.index++;

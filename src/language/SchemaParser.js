@@ -87,6 +87,10 @@ class SchemaParser {
                 params
             });
         }
+        case Syntax.TypeSizeSpecification:
+            return `${this.parseAst(ast.name)}[${this.parseAst(ast.size)}]`;
+        case Syntax.Literal:
+            return ast.value;
         case Syntax.Identifier:
             return ast.name;
         case Syntax.Namespace: {

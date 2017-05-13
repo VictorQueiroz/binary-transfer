@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import crypto from 'crypto';
 import assert from 'assert';
 import { Deserializer } from '../src';
 import { test, Vector, decode } from '../build';
@@ -19,6 +20,37 @@ describe('TestSchema', function() {
             new test.UserStatus({
                 online: true,
                 a: 1
+            });
+        });
+    });
+
+    describe('strict size', function() {
+        it('should support strict size types', function() {
+            const id = crypto.randomBytes(12);
+            assert.deepEqual(test.Comment.decode({
+                buffer: test.Comment.encode({
+                    id,
+                    description: '12345678'
+                })
+            }), new test.Comment({
+                id,
+                description: '12345678'
+            }));
+        });
+
+        it('should throw if invalid size is given', function() {
+            assert.throws(function() {
+                new test.Comment({
+                    id: Buffer.alloc(11),
+                    description: '12345678'
+                });
+            });
+
+            assert.throws(function() {
+                new test.Comment({
+                    id: Buffer.alloc(12),
+                    description: '1234567'
+                });
             });
         });
     });

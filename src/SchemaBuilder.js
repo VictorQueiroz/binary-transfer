@@ -143,6 +143,20 @@ class SchemaBuilder {
             };
         }
 
+        let strictSizeMatch;
+
+        if((strictSizeMatch = /^([a-z]+)\[([0-9]+)\]$/.exec(param.type))) {
+            const genericType = strictSizeMatch[1];
+
+            return {
+                key: param.name,
+                type: ParamEnum.GENERIC | ParamEnum.GENERIC_STRICT_SIZE,
+                method: this.generics[genericType],
+                genericType,
+                specificSize: parseInt(strictSizeMatch[2])
+            };
+        }
+
         if(BaseConstructor.isGenericType(param.type)) {
             return {
                 key: param.name,

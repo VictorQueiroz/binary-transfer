@@ -31,6 +31,24 @@ describe('SchemaParser', function() {
         }]);
     });
 
+    it('should handle strict size generic type aliases', function() {
+        assert.deepEqual(schemaParser.parse(`
+            alias ObjectId = bytes[12]
+
+            post : Post -> id: ObjectId
+        `), [{
+            id: 2016826870,
+            doc: [],
+            name: 'post',
+            params: [{
+                type: 'bytes[12]',
+                doc: [],
+                name: 'id'
+            }],
+            type: 'Post'
+        }]);
+    });
+
     it('should parse vector inside namespace', function() {
         assert.deepEqual(schemaParser.parse(`
             namespace posts {

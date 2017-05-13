@@ -195,15 +195,26 @@ class AST {
     typeIdentifier() {
         const primary = this.identifier();
 
-        if(!this.expect('.')) {
-            return primary;
+        if(this.expect('[')) {
+            const size = this.integer();
+            this.consume(']');
+            this.expect(';');
+
+            return {
+                size,
+                name: primary,
+                type: Syntax.TypeSizeSpecification
+            };
+        }
+        if(this.expect('.')) {
+            return {
+                type: Syntax.TypeIdentifier,
+                property: this.typeIdentifier(),
+                namespace: primary
+            };
         }
 
-        return {
-            type: Syntax.TypeIdentifier,
-            property: this.typeIdentifier(),
-            namespace: primary
-        };
+        return primary;
     }
 
     typeDeclaration() {
