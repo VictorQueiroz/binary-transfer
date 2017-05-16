@@ -342,6 +342,7 @@ class BaseContainerType extends BaseConstructor {
 
             switch(param.type) {
             case ParamEnum.GENERIC:
+            case ParamEnum.GENERIC | ParamEnum.GENERIC_STRICT_SIZE:
                 props[param.key] = this[param.key];
                 break;
             default:
