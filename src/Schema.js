@@ -3,7 +3,10 @@ import Deserializer from './Deserializer';
 import { ParamEnum } from './enums';
 import { createMessage } from './utils';
 
-const strictSizedTypes = ['string', 'bytes'];
+const strictSizedTypes = [
+    'string',
+    'bytes'
+];
 
 class Schema {
     constructor(schemas) {
