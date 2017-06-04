@@ -1,4 +1,5 @@
 import Long from 'long';
+import { Buffer } from 'buffer';
 import { createMessage } from './utils';
 import { escape, isUndefined } from 'lodash';
 

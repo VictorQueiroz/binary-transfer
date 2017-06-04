@@ -1,5 +1,6 @@
 import _ from 'lodash';
 import Long from 'long';
+import { Buffer } from 'buffer';
 import { createMessage } from './utils';
 
 class BaseConstructor {

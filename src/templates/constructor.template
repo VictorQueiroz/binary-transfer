@@ -1,5 +1,6 @@
 import _ from 'lodash';
 import Vector from '{{rootPath}}/Vector.js';
+import { Buffer } from 'buffer';
 import ConstructorStore from '{{rootPath}}/ConstructorStore.js';
 import {{typeFileData.context.constructorName}} from '{{typeFileData.filePath}}';
 import {Deserializer, Serializer, BaseConstructor} from '{{binaryTransferPath}}';
