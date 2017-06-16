@@ -1,8 +1,22 @@
+import _ from 'lodash';
 import crc from 'crc';
 import { Buffer } from 'buffer';
 import { AST, Syntax } from './AST';
-import BaseConstructor from '../BaseConstructor';
 import { createMessage } from '../utils';
+
+const genericTypes = [
+    'int',
+    'bool',
+    'long',
+    'uint',
+    'short',
+    'ulong',
+    'float',
+    'bytes',
+    'string',
+    'ushort',
+    'double'
+];
 
 class SchemaParser {
     constructor() {
@@ -14,7 +28,7 @@ class SchemaParser {
         this.containers = [];
 
         if(Buffer.isBuffer(schema)) {
-            return this.parse(schema.toString('utf8'));
+            schema = schema.toString('utf8');
         }
 
         this.parseAst(this.ast.ast(schema));
@@ -219,17 +233,38 @@ class SchemaParser {
         return params;
     }
 
+    isGenericType(type) {
+        return genericTypes.indexOf(type) > -1;
+    }
+
+    isConstructorReference(name) {
+        if(name.indexOf('.') > -1) {
+            name = this.skipDots(name);
+        }
+        return _.lowerCase(name.charAt(0)) == name.charAt(0);
+    }
+
+    skipDots(name) {
+        const dotIndex = name.indexOf('.');
+
+        if(dotIndex > -1) {
+            return this.skipDots(name.substring(dotIndex + 1));
+        }
+
+        return name;
+    }
+
     parseNamespacedContainer({ name, type, params, doc }, allContainers, namespace) {
         return this._crc({
             doc,
             name: `${namespace}.${name}`,
-            type: BaseConstructor.isGenericType(type) ? type : `${namespace}.${type}`,
+            type: this.isGenericType(type) ? type : `${namespace}.${type}`,
             params: params.map(param => {
                 let type = param.type;
                 const isVector = type.substring(0, 6) == 'Vector';
                 const vectorType = isVector && type.substring(7, type.length - 1);
 
-                const containerRef = BaseConstructor.isConstructorReference(isVector ? vectorType : type);
+                const containerRef = this.isConstructorReference(isVector ? vectorType : type);
                 const foundLocalContainer = allContainers.some(container => {
                     return container[containerRef ? 'name' : 'type'] == (isVector ? vectorType : type);
                 });
