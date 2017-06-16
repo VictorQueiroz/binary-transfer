@@ -86,12 +86,16 @@ class Deserializer {
         }
 
         const end = this.offset + byteLength;
+        const length = this.buffer.byteLength;
 
-        if(end > this.buffer.length) {
-            this.onError('Byte length (value: %s) is larger than the given buffer, aborting (buffer length: %s, measured end: %s)',
-                byteLength,
-                this.buffer.length,
-                end);
+        if(end > length) {
+            this.onError(
+                'Byte length (value: %s) ', byteLength,
+
+                'is larger than the given buffer, ',
+                'aborting (buffer length: %s, ', length,
+                'measured end: %s)', end);
+            return false;
         }
 
         const buffer = this.buffer.slice(this.offset, end);
