@@ -70,8 +70,9 @@ class Deserializer {
 
     _readString(bytes) {
         let sUTF8 = '';
+        const length = bytes.byteLength;
 
-        for(let i = 0; i < bytes.byteLength; i++) {
+        for(let i = 0; i < length; i++) {
             sUTF8 += String.fromCodePoint(bytes[i]);
         }
 
