@@ -67,7 +67,9 @@ class Serializer {
         const sUTF8 = unescape(encodeURIComponent(string));
         const bytes = Buffer.allocUnsafe(sUTF8.length);
 
-        for(let i = 0; i < sUTF8.length; i++) {
+        const ii = sUTF8.length;
+
+        for(let i = 0; i < ii; i++) {
             bytes.writeUInt8(sUTF8.codePointAt(i), i);
         }
 
