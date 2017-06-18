@@ -64,13 +64,14 @@ class Serializer {
      * @return {Buffer}        UTF-8 encoded buffer
      */
     _encodeString(string) {
-        const sUTF8 = unescape(encodeURIComponent(string));
-        const bytes = Buffer.allocUnsafe(sUTF8.length);
-
+        const sUTF8 = escape(string);
         const ii = sUTF8.length;
+        const bytes = Buffer.allocUnsafe(ii);
 
         for(let i = 0; i < ii; i++) {
-            bytes.writeUInt8(sUTF8.codePointAt(i), i);
+            const cp = sUTF8.charCodeAt(i);
+
+            bytes.writeUInt8(cp, i);
         }
 
         return bytes;

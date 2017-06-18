@@ -76,7 +76,7 @@ class Deserializer {
             sUTF8 += String.fromCodePoint(bytes[i]);
         }
 
-        return decodeURIComponent(escape(sUTF8));
+        return unescape(sUTF8);
     }
 
     _readBytes(byteLength) {
