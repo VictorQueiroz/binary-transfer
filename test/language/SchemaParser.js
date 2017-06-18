@@ -1,6 +1,6 @@
 import fs from 'fs';
 import assert from 'assert';
-import { language, enums } from '../src';
+import { language, enums } from '../../src';
 
 const { ParamEnum } = enums;
 
@@ -115,6 +115,45 @@ describe('SchemaParser', function() {
                 name: 'comments'
             }],
             type: 'posts.Post'
+        }]);
+    });
+
+    it('should catch all blocks of comments before container', function() {
+        assert.deepEqual(schemaParser.parse(`
+            type Post {
+                /* A */
+                /* B */
+                /* C */
+                /* D */
+                postEmpty
+            }
+            // E
+            // F
+            // G
+            // H
+            user : User
+        `), [{
+            id: 3519479065,
+            doc: [
+                ' A ',
+                ' B ',
+                ' C ',
+                ' D '
+            ],
+            name: 'postEmpty',
+            params: [],
+            type: 'Post'
+        }, {
+            id: 2648436498,
+            doc: [
+                ' E',
+                ' F',
+                ' G',
+                ' H'
+            ],
+            name: 'user',
+            params: [],
+            type: 'User'
         }]);
     });
 

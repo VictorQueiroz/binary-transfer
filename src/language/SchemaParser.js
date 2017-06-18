@@ -53,18 +53,22 @@ class SchemaParser {
         const comments = [];
         const _comments = [];
 
+        function clearGroup() {
+            if(_comments.length > 0) {
+                comments.push(_comments.splice(0, _comments.length));
+            }
+        }
+
         for(let i = 0; i < body.length; i++) {
             if(body[i].type !== Syntax.CommentBlock) {
-                comments.push(_comments.splice(0, _comments.length));
+                clearGroup();
                 continue;
             }
 
             _comments.push(this.parseAst(body[i]));
         }
 
-        if(_comments.length > 0) {
-            comments.push(_comments.splice(0, _comments.length));
-        }
+        clearGroup();
 
         return comments;
     }
@@ -72,10 +76,15 @@ class SchemaParser {
     parseAst(ast, ctx = {}) {
         switch(ast.type) {
         case Syntax.Schema:
+            const comments = this.collectComments(ast.body);
+
             ast.body.forEach(node => {
-                const result = this.parseAst(node);
+                const result = this.parseAst(node, { comments });
 
                 switch(node.type) {
+                case Syntax.GenericAlias:
+                case Syntax.CommentBlock:
+                    break;
                 case Syntax.TypeDeclaration:
                     this.containers.push(result);
                     break;
@@ -83,7 +92,10 @@ class SchemaParser {
                 case Syntax.Namespace:
                     result.forEach(container => {
                         this.containers.push(container);
-                    });                    
+                    });
+                    break;
+                default:
+                    throw new Error(`unhandled ast type -> ${node.type}`);
                 }
             });
             break;
