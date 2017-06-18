@@ -1,5 +1,0 @@
-import { set } from 'lodash';
-
-{% for constructor in constructors %}
-set(exports, '{{ constructor.name }}', require('{{ constructor.filePath }}'));
-{% endfor %}

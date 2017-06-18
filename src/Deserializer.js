@@ -1,4 +1,5 @@
 import Long from 'long';
+import { Buffer } from 'buffer';
 import { createMessage } from './utils';
 import { escape, isUndefined } from 'lodash';
 
@@ -69,12 +70,13 @@ class Deserializer {
 
     _readString(bytes) {
         let sUTF8 = '';
+        const length = bytes.byteLength;
 
-        for(let i = 0; i < bytes.byteLength; i++) {
+        for(let i = 0; i < length; i++) {
             sUTF8 += String.fromCodePoint(bytes[i]);
         }
 
-        return decodeURIComponent(escape(sUTF8));
+        return unescape(sUTF8);
     }
 
     _readBytes(byteLength) {
@@ -84,12 +86,16 @@ class Deserializer {
         }
 
         const end = this.offset + byteLength;
+        const length = this.buffer.byteLength;
 
-        if(end > this.buffer.length) {
-            this.onError('Byte length (value: %s) is larger than the given buffer, aborting (buffer length: %s, measured end: %s)',
-                byteLength,
-                this.buffer.length,
-                end);
+        if(end > length) {
+            this.onError(
+                'Byte length (value: %s) ', byteLength,
+
+                'is larger than the given buffer, ',
+                'aborting (buffer length: %s, ', length,
+                'measured end: %s)', end);
+            return false;
         }
 
         const buffer = this.buffer.slice(this.offset, end);

@@ -175,6 +175,20 @@ describe('Serializer', function() {
     });
 
     describe('writeString()', function() {
+        it('should encode simple string', function() {
+            serializer.writeString('hi. my name is X');
+
+            deserializer = new Deserializer(serializer.getBuffer());
+            assert.equal('hi. my name is X', deserializer.readString());
+        });
+
+        it('should encode russian characters', function() {
+            serializer.writeString('Здравствуй. Как дела?');
+
+            deserializer = new Deserializer(serializer.getBuffer());
+            assert.equal('Здравствуй. Как дела?', deserializer.readString());
+        });
+
         it('should encode emojis correctly', function() {
             serializer.writeString('message: 🎱');
 

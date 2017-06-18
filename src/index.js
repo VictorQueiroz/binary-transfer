@@ -1,8 +1,5 @@
-export Decoder from './Decoder';
-export BaseVector from './BaseVector';
+export Schema from './Schema';
 export Serializer from './Serializer';
+export * as enums from './enums';
 export Deserializer from './Deserializer';
 export * as language from './language';
-export SchemaBuilder from './SchemaBuilder';
-export BaseConstructor from './BaseConstructor';
-export BaseContainerType from './BaseContainerType';

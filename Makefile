@@ -1,4 +1,4 @@
-tdd: build_test_schema
+tdd:
 	NODE_ENV=development ./node_modules/.bin/mocha \
 	test/ \
 	--recursive \
@@ -9,13 +9,10 @@ tdd: build_test_schema
 	--require babel-register \
 	--check-leaks
 
-build_test_schema:
-	node build-test-schema.js
-
-benchmark: build_test_schema
+benchmark:
 	node benchmark/index.js
 
-test: build_test_schema
+test:
 	NODE_ENV=development ./node_modules/.bin/mocha \
 	test/ \
 	--recursive \
@@ -24,9 +21,8 @@ test: build_test_schema
 	--colors \
 	--require babel-register
 
-release: build_test_schema test
+release: test
 	rm -rvf lib/
 	./node_modules/.bin/babel src/ -d lib/
-	cp -rv src/templates lib/templates
 
-.PHONY: release test build_test_schema tdd
+.PHONY: release test tdd

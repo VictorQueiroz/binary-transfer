@@ -1,6 +1,8 @@
 import fs from 'fs';
 import assert from 'assert';
-import { language } from '../src';
+import { language, enums } from '../../src';
+
+const { ParamEnum } = enums;
 
 describe('SchemaParser', function() {
     let testSchema,
@@ -11,6 +13,15 @@ describe('SchemaParser', function() {
         schemaParser = new language.SchemaParser();
     });
 
+    it('should not allow double definition of generic aliases', function() {
+        assert.throws(function() {
+            schemaParser,parse(`
+                alias A = string[12];
+                alias A = string[12];
+            `);
+        });
+    });
+
     it('should handle generic aliases', function() {
         assert.deepEqual(schemaParser.parse(`
             alias ObjectId = bytes
@@ -19,13 +30,14 @@ describe('SchemaParser', function() {
                 post -> id: ObjectId
             }
         `), [{
-            id: 24315331,
+            id: 1292630130,
             doc: [],
             name: 'post',
             params: [{
-                type: 'bytes',
+                type: ParamEnum.GENERIC,
                 doc: [],
-                name: 'id'
+                name: 'id',
+                genericType: 'bytes'
             }],
             type: 'Post'
         }]);
@@ -37,12 +49,14 @@ describe('SchemaParser', function() {
 
             post : Post -> id: ObjectId
         `), [{
-            id: 2016826870,
+            id: 1899171769,
             doc: [],
             name: 'post',
             params: [{
-                type: 'bytes[12]',
+                genericType: 'bytes',
+                size: 12,
                 doc: [],
+                type: ParamEnum.STRICT_SIZE | ParamEnum.GENERIC,
                 name: 'id'
             }],
             type: 'Post'
@@ -64,39 +78,82 @@ describe('SchemaParser', function() {
                 }
             }
         `), [{
-            id: 3858428844,
+            id: 2993745826,
             doc: [],
             params: [{
                 doc: [],
-                type: 'string',
-                name: 'body'
+                type: ParamEnum.GENERIC,
+                name: 'body',
+                genericType: 'string',
             }],
             type: 'posts.Comment',
             name: 'posts.comment'
         }, {
-            id: 3660060063,
+            id: 2063531210,
             doc: [],
             params: [{
                 doc: [],
-                type: 'uint',
+                type: ParamEnum.GENERIC,
+                genericType: 'uint',
                 name: 'deleteDate'
             }],
             type: 'posts.Comment',
             name: 'posts.commentDeleted'
         }, {
-            id: 3650725341,
+            id: 3702544615,
             name: 'posts.post',
             doc: [],
             params: [{
                 doc: [],
-                type: 'string',
+                type: ParamEnum.GENERIC,
+                genericType: 'string',
                 name: 'name'
             }, {
                 doc: [],
-                type: 'Vector<posts.Comment>',
+                type: ParamEnum.VECTOR,
+                vectorOf: 'posts.Comment',
                 name: 'comments'
             }],
             type: 'posts.Post'
+        }]);
+    });
+
+    it('should catch all blocks of comments before container', function() {
+        assert.deepEqual(schemaParser.parse(`
+            type Post {
+                /* A */
+                /* B */
+                /* C */
+                /* D */
+                postEmpty
+            }
+            // E
+            // F
+            // G
+            // H
+            user : User
+        `), [{
+            id: 3519479065,
+            doc: [
+                ' A ',
+                ' B ',
+                ' C ',
+                ' D '
+            ],
+            name: 'postEmpty',
+            params: [],
+            type: 'Post'
+        }, {
+            id: 2648436498,
+            doc: [
+                ' E',
+                ' F',
+                ' G',
+                ' H'
+            ],
+            name: 'user',
+            params: [],
+            type: 'User'
         }]);
     });
 
@@ -107,7 +164,7 @@ describe('SchemaParser', function() {
                 post : Post
             }
         `), [{
-            id: 1566593625,
+            id: 3528988256,
             doc: [" default post "],
             params: [],
             type: 'post.Post',
@@ -128,23 +185,25 @@ describe('SchemaParser', function() {
                 }
             }
         `), [{
-            id: 1341726436,
+            id: 1122210879,
             doc: [],
             name: 'post.post',
             params: [{
                 doc: [],
-                type: 'Vector<post.comment>',
+                type: ParamEnum.VECTOR,
+                vectorOf: 'post.comment',
                 name: 'comments'
             }],
             type: 'post.Post'
         }, {
-            id: 3709037810,
+            id: 2098008278,
             doc: [],
             name: 'post.comment',
             params: [{
                 doc: [],
                 name: 'id',
-                type: 'uint'
+                type: ParamEnum.GENERIC,
+                genericType: 'uint'
             }],
             type: 'post.Comment'
         }]);
@@ -161,16 +220,18 @@ describe('SchemaParser', function() {
                 }
             }
         `), [{
-            id: 4144526986,
+            id: 2821083026,
             name: 'posts.post',
             doc: [],
             params: [{
                 doc: [],
-                type: 'string',
-                name: 'name'
+                type: ParamEnum.GENERIC,
+                name: 'name',
+                genericType: 'string',
             }, {
                 doc: [],
-                type: 'Vector<Comment>',
+                type: ParamEnum.VECTOR,
+                vectorOf: 'Comment',
                 name: 'comments'
             }],
             type: 'posts.Post'
@@ -185,19 +246,19 @@ describe('SchemaParser', function() {
                 postDeleted
             }
         `), [{
-            id: 3530048371,
+            id: 1960609718,
             params: [],
             doc: [],
             name: 'post',
             type: 'Post'
         }, {
-            id: 4067641446,
+            id: 1050142408,
             name: 'postEdited',
             doc: [],
             params: [],
             type: 'Post'
         }, {
-            id: 1962839665,
+            id: 3428278400,
             name: 'postDeleted',
             doc: [],
             params: [],
@@ -216,23 +277,24 @@ describe('SchemaParser', function() {
                 }
             }
         `), [{
-            id: 997141463,
+            id: 2648436498,
             doc: [],
             name: 'user',
             params: [],
             type: 'User'
         }, {
-            id: 988423833,
+            id: 2071494210,
             doc: [],
             name: 'userDeleted',
             params: [],
             type: 'User'
         }, {
-            id: 1994514502,
+            id: 1055426487,
             doc: [],
             name: 'userMoved',
             params: [{
-                type: 'uint',
+                type: ParamEnum.GENERIC,
+                genericType: 'uint',
                 name: 'userId',
                 doc: [' new user id']
             }],
@@ -252,31 +314,34 @@ describe('SchemaParser', function() {
                 account : Account
             }
         `), [{
-            id: 3738258975,
+            id: 2566007917,
             doc: [],
             name: 'user.user',
             params: [{
                 doc: [],
-                type: 'uint',
+                type: ParamEnum.GENERIC,
+                genericType: 'uint',
                 name: 'id'
             }],
             type: 'user.User'
         }, {
-            id: 360725528,
+            id: 1784606433,
             doc: [],
             name: 'posts.post',
             params: [{
                 doc: [],
-                type: 'user.User',
-                name: 'author'
+                type: ParamEnum.NON_GENERIC,
+                name: 'author',
+                containerReference: 'user.User',
             }, {
                 doc: [],
-                type: 'accounts.Account',
-                name: 'account'
+                type: ParamEnum.NON_GENERIC,
+                name: 'account',
+                containerReference: 'accounts.Account'
             }],
             type: 'posts.Post'
         }, {
-            id: 3950322327,
+            id: 342777446,
             doc: [],
             name: 'accounts.account',
             params: [],
@@ -294,15 +359,16 @@ describe('SchemaParser', function() {
                 postRemoved -> removeDate: uint;
             }
         `), [{
-            id: 3712632172,
+            id: 1224281048,
             doc: [' default post '],
             params: [],
             type: 'Post',
             name: 'postDefault'
         }, {
-            id: 2402650323,
+            id: 2125313560,
             params: [{
-                type: 'uint',
+                type: ParamEnum.GENERIC,
+                genericType: 'uint',
                 name: 'removeDate',
                 doc: []
             }],
@@ -324,35 +390,36 @@ describe('SchemaParser', function() {
                 comment : Comment
             }
         `), [{
-            id: 3033453801,
+            id: 2788488578,
             doc: [],
             name: 'posts.postDefault',
             type: 'posts.Post',
             params: []
         }, {
-            id: 2353734871,
+            id: 3062764745,
             doc: [],
             name: 'posts.postRemoved',
             type: 'posts.Post',
             params: []
         }, {
-            id: 494542836,
+            id: 3817071662,
             doc: [],
             name: 'posts.postDeleted',
             type: 'posts.Post',
             params: []
         }, {
-            id: 1836829228,
+            id: 341424683,
             doc: [],
             params: [{
                 doc: [],
-                type: 'posts.Comment',
+                type: ParamEnum.NON_GENERIC,
+                containerReference: 'posts.Comment',
                 name: 'comment'
             }],
             name: 'posts.postCommented',
             type: 'posts.Post'
         }, {
-            id: 85418714,
+            id: 3723934202,
             doc: [],
             name: 'posts.comment',
             params: [],
@@ -365,25 +432,28 @@ describe('SchemaParser', function() {
             Account account -> id: int, username: string, email: string;
             Void void;
         `), [{
-            id: 186715902,
+            id: 313154873,
             doc: [],
             type: 'Account',
             params: [{
-                type: 'int',
+                genericType: 'int',
+                type: ParamEnum.GENERIC,
                 name: 'id',
                 doc: []
             }, {
-                type: 'string',
+                genericType: 'string',
+                type: ParamEnum.GENERIC,
                 name: 'username',
                 doc: []
             }, {
                 name: 'email',
-                type: 'string',
+                genericType: 'string',
+                type: ParamEnum.GENERIC,
                 doc: []
             }],
             name: 'account'
         }, {
-            id: 2178958158,
+            id: 659851147,
             doc: [],
             type: 'Void',
             params: [],
@@ -393,11 +463,12 @@ describe('SchemaParser', function() {
 
     it('should parse namespaced constructors', function() {
         assert.deepEqual(schemaParser.parse('user.User user.userRegular -> id: int;'), [{
-            id: 4060771189,
+            id: 2192379313,
             doc: [],
             type: 'user.User',
             params: [{
-                type: 'int',
+                genericType: 'int',
+                type: ParamEnum.GENERIC,
                 name: 'id',
                 doc: []
             }],
