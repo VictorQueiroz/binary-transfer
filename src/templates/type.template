@@ -1,9 +1,0 @@
-import _ from 'lodash';
-import { BaseContainerType } from '{{binaryTransferPath}}';
-
-class {{constructorName}} extends BaseContainerType {
-    static _ids = [{{ possibleIds | join(', ') }}];
-    static _type = '{{type.name}}';
-}
-
-module.exports = {{constructorName}};
