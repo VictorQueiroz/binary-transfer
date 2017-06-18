@@ -24,6 +24,5 @@ test:
 release: test
 	rm -rvf lib/
 	./node_modules/.bin/babel src/ -d lib/
-	cp -rv src/templates lib/templates
 
 .PHONY: release test tdd
