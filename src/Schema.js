@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import Serializer from './Serializer';
 import Deserializer from './Deserializer';
 import { ParamEnum } from './enums';
@@ -146,6 +147,19 @@ class Schema {
     }
 
     encode(object) {
+        if(_.isString(object)) {
+            let params = arguments[1];
+
+            if(!_.isObject(params)) {
+                params = {};
+            }
+
+            return this.encode({
+                _name: object,
+                ...params
+            });
+        }
+
         const { containers } = this;
         const containerName = object[this.containerProperty];
 
@@ -155,7 +169,7 @@ class Schema {
         }
 
         const s = new Serializer();
-        const { id, params } = this.containers[containerName];
+        const { id, params } = containers[containerName];
 
         s.writeUInt(id);
 

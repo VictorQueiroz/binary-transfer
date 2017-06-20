@@ -9,6 +9,8 @@ describe('Schema', function() {
         const containers = new language.SchemaParser().parse(`
             alias ObjectId = bytes[12];
             alias PostTitle = string[12];
+
+            void : Void
             type User {
                 user -> id: uint, firstName: string
                 userEmpty
@@ -24,6 +26,12 @@ describe('Schema', function() {
         s = new Schema([{
             containers
         }]);
+    });
+
+    it('should encode with first argument as string', function() {
+        assert.deepEqual(s.encode('void'), s.encode({
+            _name: 'void'
+        }));
     });
 
     it('should encode simple containers', function() {
