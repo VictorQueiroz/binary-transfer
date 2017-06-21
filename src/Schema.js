@@ -146,22 +146,13 @@ class Schema {
         }
     }
 
-    encode(object) {
-        if(_.isString(object)) {
-            let params = arguments[1];
-
-            if(!_.isObject(params)) {
-                params = {};
-            }
-
-            return this.encode({
-                _name: object,
-                ...params
-            });
+    encode(containerName, object) {
+        if(_.isObject(containerName)) {
+            object = containerName;
+            return this.encode(object._name, object);
         }
 
         const { containers } = this;
-        const containerName = object[this.containerProperty];
 
         if(!containers.hasOwnProperty(containerName)) {
             this.throwError('undefined container name -> %s', containerName);
