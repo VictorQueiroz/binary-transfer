@@ -12,7 +12,7 @@ describe('Schema', function() {
 
             void : Void
             type User {
-                user -> id: uint, firstName: string
+                user -> id: uint, name: string, comments: Vector<uint>
                 userEmpty
             }
             type Post {
@@ -36,9 +36,10 @@ describe('Schema', function() {
 
     it('should encode simple containers', function() {
         const obj = {
-            _name: 'user',
             id: 139391,
-            firstName: 'First user'
+            name: 'First user',
+            _name: 'user',
+            comments: [],
         };
         assert.deepEqual(s.decode({
             bytes: s.encode(obj)
@@ -65,5 +66,20 @@ describe('Schema', function() {
             }]
         };
         assert.deepEqual(s.decode({ bytes: s.encode(obj) }), obj);
+    });
+
+    it('should encode vector of generics', function() {
+        assert.deepEqual(s.decode({
+            bytes: s.encode('user', {
+                id: 2020,
+                name: '',
+                comments: [100300,399993]
+            })
+        }), {
+            _name: 'user',
+            id: 2020,
+            name: '',
+            comments: [100300,399993]
+        });
     });
 });

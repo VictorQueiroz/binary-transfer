@@ -37,6 +37,39 @@ class Schema {
         }
     }
 
+    isGeneric(type) {
+        return require('./generics.json').indexOf(type) > -1;
+    }
+
+    decodeGeneric(d, type) {
+        switch(type) {
+        case 'int':
+            return d.readInt();
+        case 'uint':
+            return d.readUInt();
+        case 'long':
+            return d.readLong();
+        case 'ulong':
+            return d.readULong();
+        case 'bool':
+            return d.readBool();
+        case 'short':
+            return d.readShort();
+        case 'ushort':
+            return d.readUShort();
+        case 'float':
+            return d.readFloat();
+        case 'double':
+            return d.readDouble();
+        case 'string':
+            return d.readString();
+        case 'bytes':
+            return d.readBytes();
+        default:
+            this.throwError('Unhandled generic type -> %s', type);
+        }
+    }
+
     decode({ bytes, deserializer: d }) {
         const result = {};
 
@@ -56,7 +89,10 @@ class Schema {
 
         result._name = name;
 
-        for(let i = 0; i < ii; i++) {
+        let i,
+            j;
+
+        for(i = 0; i < ii; i++) {
             const param = params[i];
             const { name: key, type } = param;
 
@@ -68,49 +104,22 @@ class Schema {
                     continue;
                 }
 
-                switch(genericType) {
-                case 'int':
-                    result[key] = d.readInt();
-                    break;
-                case 'uint':
-                    result[key] = d.readUInt();
-                    break;
-                case 'long':
-                    result[key] = d.readLong();
-                    break;
-                case 'ulong':
-                    result[key] = d.readULong();
-                    break;
-                case 'bool':
-                    result[key] = d.readBool();
-                    break;
-                case 'short':
-                    result[key] = d.readShort();
-                    break;
-                case 'ushort':
-                    result[key] = d.readUShort();
-                    break;
-                case 'float':
-                    result[key] = d.readFloat();
-                    break;
-                case 'double':
-                    result[key] = d.readDouble();
-                    break;
-                case 'string':
-                    result[key] = d.readString();
-                    break;
-                case 'bytes':
-                    result[key] = d.readBytes();
-                    break;
-                }
+                result[key] = this.decodeGeneric(d, genericType);
             } else if(type & ParamEnum.VECTOR) {
+                const { vectorOf } = param;
                 const length = d.readUInt();
                 const list = new Array(length);
 
-                for(let i = 0; i < length; i++) {
-                    list[i] = this.decode({
-                        deserializer: d
-                    });
+                if(this.isGeneric(vectorOf)) {
+                    for(j = 0; j < length; j++) {
+                        list[j] = this.decodeGeneric(d, vectorOf);
+                    }
+                } else {
+                    for(j = 0; j < length; j++) {
+                        list[j] = this.decode({
+                            deserializer: d
+                        });
+                    }
                 }
 
                 result[key] = list;
@@ -146,6 +155,44 @@ class Schema {
         }
     }
 
+    encodeGeneric(s, value, genericType) {
+        switch(genericType) {
+        case 'int':
+            s.writeInt(value);
+            break;
+        case 'uint':
+            s.writeUInt(value);
+            break;
+        case 'long':
+            s.writeLong(value);
+            break;
+        case 'ulong':
+            s.writeULong(value);
+            break;
+        case 'bool':
+            s.writeBool(value);
+            break;
+        case 'short':
+            s.writeShort(value);
+            break;
+        case 'ushort':
+            s.writeUShort(value);
+            break;
+        case 'float':
+            s.writeFloat(value);
+            break;
+        case 'double':
+            s.writeDouble(value);
+            break;
+        case 'string':
+            s.writeString(value);
+            break;
+        case 'bytes':
+            s.writeBytes(value);
+            break;
+        }
+    }
+
     encode(containerName, object) {
         if(_.isObject(containerName)) {
             object = containerName;
@@ -164,9 +211,10 @@ class Schema {
 
         s.writeUInt(id);
 
+        let i, j;
         const ii = params.length;
 
-        for(let i = 0; i < ii; i++) {
+        for(i = 0; i < ii; i++) {
             const param = params[i];
             const { name: key, type } = param;
 
@@ -184,48 +232,21 @@ class Schema {
                     value = this.getGenericDefault(genericType);
                 }
 
-                switch(genericType) {
-                case 'int':
-                    s.writeInt(value);
-                    break;
-                case 'uint':
-                    s.writeUInt(value);
-                    break;
-                case 'long':
-                    s.writeLong(value);
-                    break;
-                case 'ulong':
-                    s.writeULong(value);
-                    break;
-                case 'bool':
-                    s.writeBool(value);
-                    break;
-                case 'short':
-                    s.writeShort(value);
-                    break;
-                case 'ushort':
-                    s.writeUShort(value);
-                    break;
-                case 'float':
-                    s.writeFloat(value);
-                    break;
-                case 'double':
-                    s.writeDouble(value);
-                    break;
-                case 'string':
-                    s.writeString(value);
-                    break;
-                case 'bytes':
-                    s.writeBytes(value);
-                    break;
-                }
+                this.encodeGeneric(s, value, genericType);
             } else if(type & ParamEnum.VECTOR) {
                 const length = value.length;
+                const { vectorOf } = param;
 
                 s.writeUInt(length);
 
-                for(let j = 0; j < length; j++) {
-                    s.addBuffer(this.encode(value[j]));
+                if(this.isGeneric(vectorOf)) {
+                    for(j = 0; j < length; j++) {
+                        this.encodeGeneric(s, value[j], vectorOf);
+                    }
+                } else {
+                    for(j = 0; j < length; j++) {
+                        s.addBuffer(this.encode(value[j]));
+                    }
                 }
             } else if(type & ParamEnum.NON_GENERIC) {
                 s.addBuffer(this.encode(value));
