@@ -5,7 +5,7 @@ import { ParamEnum } from '../enums';
 import { AST, Syntax } from './AST';
 import { createMessage } from '../utils';
 
-const genericTypes = require('../generics');
+const genericTypes = require('../../generics');
 
 class SchemaParser {
     constructor() {

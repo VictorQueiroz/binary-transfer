@@ -38,7 +38,7 @@ class Schema {
     }
 
     isGeneric(type) {
-        return require('./generics.json').indexOf(type) > -1;
+        return require('../generics.json').indexOf(type) > -1;
     }
 
     decodeGeneric(d, type) {
