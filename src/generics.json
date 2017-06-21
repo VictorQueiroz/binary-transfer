@@ -1,0 +1,13 @@
+[
+    "int",
+    "uint",
+    "long",
+    "ulong",
+    "bool",
+    "short",
+    "ushort",
+    "float",
+    "double",
+    "string",
+    "bytes"
+]

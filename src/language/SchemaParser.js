@@ -5,19 +5,7 @@ import { ParamEnum } from '../enums';
 import { AST, Syntax } from './AST';
 import { createMessage } from '../utils';
 
-const genericTypes = [
-    'int',
-    'bool',
-    'long',
-    'uint',
-    'short',
-    'ulong',
-    'float',
-    'bytes',
-    'string',
-    'ushort',
-    'double'
-];
+const genericTypes = require('../generics');
 
 class SchemaParser {
     constructor() {
