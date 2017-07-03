@@ -30,7 +30,7 @@ describe('SchemaParser', function() {
                 post -> id: ObjectId
             }
         `), [{
-            id: 1292630130,
+            id: 2048757241,
             doc: [],
             name: 'post',
             params: [{
@@ -49,7 +49,7 @@ describe('SchemaParser', function() {
 
             post : Post -> id: ObjectId
         `), [{
-            id: 1899171769,
+            id: 3178530016,
             doc: [],
             name: 'post',
             params: [{
@@ -78,7 +78,7 @@ describe('SchemaParser', function() {
                 }
             }
         `), [{
-            id: 2993745826,
+            id: 2318995921,
             doc: [],
             params: [{
                 doc: [],
@@ -89,7 +89,7 @@ describe('SchemaParser', function() {
             type: 'posts.Comment',
             name: 'posts.comment'
         }, {
-            id: 2063531210,
+            id: 3029264984,
             doc: [],
             params: [{
                 doc: [],
@@ -100,7 +100,7 @@ describe('SchemaParser', function() {
             type: 'posts.Comment',
             name: 'posts.commentDeleted'
         }, {
-            id: 3702544615,
+            id: 4168132268,
             name: 'posts.post',
             doc: [],
             params: [{
@@ -185,7 +185,7 @@ describe('SchemaParser', function() {
                 }
             }
         `), [{
-            id: 1122210879,
+            id: 2115106932,
             doc: [],
             name: 'post.post',
             params: [{
@@ -196,7 +196,7 @@ describe('SchemaParser', function() {
             }],
             type: 'post.Post'
         }, {
-            id: 2098008278,
+            id: 2733325657,
             doc: [],
             name: 'post.comment',
             params: [{
@@ -220,7 +220,7 @@ describe('SchemaParser', function() {
                 }
             }
         `), [{
-            id: 2821083026,
+            id: 33940583,
             name: 'posts.post',
             doc: [],
             params: [{
@@ -289,7 +289,7 @@ describe('SchemaParser', function() {
             params: [],
             type: 'User'
         }, {
-            id: 1055426487,
+            id: 1321802668,
             doc: [],
             name: 'userMoved',
             params: [{
@@ -314,7 +314,7 @@ describe('SchemaParser', function() {
                 account : Account
             }
         `), [{
-            id: 2566007917,
+            id: 112001971,
             doc: [],
             name: 'user.user',
             params: [{
@@ -325,7 +325,7 @@ describe('SchemaParser', function() {
             }],
             type: 'user.User'
         }, {
-            id: 1784606433,
+            id: 2018556925,
             doc: [],
             name: 'posts.post',
             params: [{
@@ -365,7 +365,7 @@ describe('SchemaParser', function() {
             type: 'Post',
             name: 'postDefault'
         }, {
-            id: 2125313560,
+            id: 3970390829,
             params: [{
                 type: ParamEnum.GENERIC,
                 genericType: 'uint',
@@ -408,7 +408,7 @@ describe('SchemaParser', function() {
             type: 'posts.Post',
             params: []
         }, {
-            id: 341424683,
+            id: 2589134390,
             doc: [],
             params: [{
                 doc: [],
@@ -432,7 +432,7 @@ describe('SchemaParser', function() {
             Account account -> id: int, username: string, email: string;
             Void void;
         `), [{
-            id: 313154873,
+            id: 2158046050,
             doc: [],
             type: 'Account',
             params: [{
@@ -463,7 +463,7 @@ describe('SchemaParser', function() {
 
     it('should parse namespaced constructors', function() {
         assert.deepEqual(schemaParser.parse('user.User user.userRegular -> id: int;'), [{
-            id: 2192379313,
+            id: 2167712555,
             doc: [],
             type: 'user.User',
             params: [{

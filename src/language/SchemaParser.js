@@ -278,6 +278,8 @@ class SchemaParser {
     typeToStr(type, param) {
         let str = '';
 
+        str += param.name + '->';
+
         if(type & ParamEnum.GENERIC) {
             str += `generic#${param.genericType}`;
         } else if(type & ParamEnum.NON_GENERIC) {
