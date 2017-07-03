@@ -43,6 +43,44 @@ describe('SchemaParser', function() {
         }]);
     });
 
+    it('should support deep namespacing', function() {
+        assert.deepEqual(schemaParser.parse(`
+            // photo container
+            photo : Photo -> id: uint;
+
+            namespace admin {
+                namespace user {
+                    type SetProfilePhotoResponse {
+                        // set user profile picture
+                        SetProfilePhoto -> photo: Photo
+                    }
+                }
+            }
+        `), [{
+            doc: [' photo container'],
+            id: 1069932124,
+            name: 'photo',
+            params: [{
+                doc: [],
+                genericType: 'uint',
+                name: 'id',
+                type: ParamEnum.GENERIC
+            }],
+            type: 'Photo'
+        }, {
+            doc: [' set user profile picture'],
+            id: 588240056,
+            name: 'admin.user.SetProfilePhoto',
+            params: [{
+                containerReference: 'Photo',
+                doc: [],
+                name: 'photo',
+                type: ParamEnum.NON_GENERIC
+            }],
+            type: 'admin.user.SetProfilePhotoResponse'
+        }]);
+    });
+
     it('should handle strict size generic type aliases', function() {
         assert.deepEqual(schemaParser.parse(`
             alias ObjectId = bytes[12]

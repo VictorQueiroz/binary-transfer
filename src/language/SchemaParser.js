@@ -160,6 +160,7 @@ class SchemaParser {
                 switch(body[i].type) {
                 case Syntax.CommentBlock:
                     break;
+                case Syntax.Namespace:
                 case Syntax.TypeGroup:
                     result.forEach(container => {
                         containers.push(container);
