@@ -14,6 +14,7 @@ class Schema {
         this.schemas = schemas;
         this.containers = {};
         this.containersById = {};
+        this.containersByType = {};
         this.containerProperty = '_name';
 
         let i, j, jj, container;
@@ -27,12 +28,18 @@ class Schema {
             for(j = 0; j < jj; j++) {
                 container = containers[j];
 
+                if(!this.containersByType.hasOwnProperty(container.type)) {
+                    this.containersByType[container.type] = [];
+                }
+
                 if(this.containers.hasOwnProperty(container.name)) {
                     this.throwError('repeated container name -> %s', container.name);
                     return false;
                 }
+
                 this.containers[container.name] = container;
                 this.containersById[container.id] = container;
+                this.containersByType[container.type].push(container);
             }
         }
     }
@@ -124,6 +131,27 @@ class Schema {
 
                 result[key] = list;
             } else if(type & ParamEnum.NON_GENERIC) {
+                if(process.env.NODE_ENV !== 'production') {
+                    const containers = [];
+                    const { containerReference: name } = param;
+                    const { containersByType, containers: containersByName } = this;
+
+                    if(containersByType.hasOwnProperty(name)) {
+                        containers.push(...containersByType[name]);
+                    } else if(containersByName.hasOwnProperty(name)) {
+                        containers.push(containersByName[name]);
+                    } else {
+                        throw new Error(`Invalid container named -> ${name}`);
+                    }
+
+                    const ids = containers.map(c => c.id);
+                    const header = d.buffer.readUInt32LE(d.offset);
+
+                    if(ids.indexOf(header) === -1) {
+                        throw new Error(`Invalid header. Expected ${ids.join(' or')} but got "${header}" instead`);
+                    }
+                }
+
                 result[key] = this.decode({
                     deserializer: d
                 });
