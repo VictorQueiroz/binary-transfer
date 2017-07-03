@@ -22,6 +22,43 @@ describe('SchemaParser', function() {
         });
     });
 
+    it('should support optional param', function() {
+        assert.deepEqual(schemaParser.parse(`
+            photo : Photo -> id: uint;
+            user : User {
+                id: uint;
+                photo?: Photo;
+            }
+        `), [{
+            doc: [],
+            id: 1069932124,
+            name: 'photo',
+            params: [{
+                doc: [],
+                genericType: 'uint',
+                type: ParamEnum.GENERIC,
+                name: 'id'
+            }],
+            type: 'Photo'
+        }, {
+            id: 2244306929,
+            doc: [],
+            name: 'user',
+            params: [{
+                doc: [],
+                genericType: 'uint',
+                name: 'id',
+                type: ParamEnum.GENERIC
+            }, {
+                doc: [],
+                containerReference: 'Photo',
+                name: 'photo',
+                type: ParamEnum.NON_GENERIC | ParamEnum.OPTIONAL
+            }],
+            type: 'User'
+        }]);
+    });
+
     it('should handle generic aliases', function() {
         assert.deepEqual(schemaParser.parse(`
             alias ObjectId = bytes

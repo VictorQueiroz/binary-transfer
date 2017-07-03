@@ -252,7 +252,7 @@ class SchemaParser {
                 doc: this.shiftNextComment(ctx)
             };
 
-            this.parseParamType(ast.returnType, result);
+            this.parseParamType(ast.returnType, result, ast.optional);
             return result;
         }
         case Syntax.CommentBlock: {
@@ -285,6 +285,9 @@ class SchemaParser {
             str += `generic#${param.genericType}`;
         } else if(type & ParamEnum.NON_GENERIC) {
             str += `non_generic#${param.containerReference}`;
+        }
+        if(type & ParamEnum.OPTIONAL) {
+            str += '?';
         }
         if(type & ParamEnum.VECTOR) {
             str += `vector#${param.vectorOf}`;
@@ -327,7 +330,10 @@ class SchemaParser {
         result.containerReference = type;        
     }
 
-    parseParamType(ast, result) {
+    parseParamType(ast, result, optional) {
+        if(optional) {
+            result.type |= ParamEnum.OPTIONAL;
+        }
         switch(ast.type) {
         case Syntax.TypeIdentifier:
             const type = this.parseAst(ast.namespace) + '.' + this.parseAst(ast.property);

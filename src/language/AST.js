@@ -283,7 +283,13 @@ class AST {
         const ast = {
             key: this.identifier(),
             type: Syntax.TypeProperty,
+            optional: false
         };
+
+        if(this.expect('?')) {
+            ast.optional = true;
+        }
+
         this.expect(':');
 
         ast.returnType = this.returnType();

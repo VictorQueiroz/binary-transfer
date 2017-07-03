@@ -12,8 +12,14 @@ describe('Schema', function() {
 
             void : Void
             type User {
-                user -> id: uint, name: string, comments: Vector<uint>
-                userEmpty
+                user -> id: uint,
+                        name: string,
+                        photo?: Photo,
+                        comments: Vector<uint>
+                userBanned -> lastComment: Comment, banDate: uint
+            }
+            type Photo {
+                photo -> id: uint
             }
             type Post {
                 post -> id: ObjectId, title: PostTitle
@@ -26,6 +32,26 @@ describe('Schema', function() {
         s = new Schema([{
             containers
         }]);
+    });
+
+    it('should encode container with optional param', function() {
+        assert.deepEqual(s.decode({
+            bytes: s.encode('user', {
+                id: 100,
+                name: '',
+                photo: { _name: 'photo', id: 939494 },
+                comments: []
+            })
+        }), {
+            _name: 'user',
+            id: 100,
+            name: '',
+            photo: {
+                _name: 'photo',
+                id: 939494
+            },
+            comments: []
+        });
     });
 
     it('should encode non generic param', function() {

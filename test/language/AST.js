@@ -9,6 +9,49 @@ describe('AST', function() {
     });
 
     describe('ast()', function() {
+        it('should support optional params', function() {
+            const schema = ast.ast('user : User -> id: uint, photo?: Photo');
+
+            deepEqual(schema, {
+                type: Syntax.Schema,
+                body: [{
+                    type: Syntax.TypeDeclaration,
+                    name: {
+                        type: Syntax.Identifier,
+                        name: 'User'
+                    },
+                    ctor: {
+                        name: 'user',
+                        type: Syntax.Identifier
+                    },
+                    body: [{
+                        type: Syntax.TypeProperty,
+                        optional: false,
+                        key: {
+                            type: Syntax.Identifier,
+                            name: 'id'
+                        },
+                        optional: false,
+                        returnType: {
+                            type: Syntax.Identifier,
+                            name: 'uint'
+                        }
+                    }, {
+                        type: Syntax.TypeProperty,
+                        key: {
+                            type: Syntax.Identifier,
+                            name: 'photo'
+                        },
+                        optional: true,
+                        returnType: {
+                            name: 'Photo',
+                            type: Syntax.Identifier
+                        }
+                    }]
+                }]
+            });
+        });
+
         it('should deal with quick namespacing', function() {
             const schema = ast.ast(`
                 namespace user {
@@ -72,6 +115,7 @@ describe('AST', function() {
                                 name: 'id',
                                 type: Syntax.Identifier
                             },
+                            optional: false,
                             returnType: {
                                 type: Syntax.Identifier,
                                 name: 'ObjectId'
@@ -120,6 +164,7 @@ describe('AST', function() {
                                 name: 'id',
                                 type: Syntax.Identifier
                             },
+                            optional: false,
                             returnType: {
                                 type: Syntax.Identifier,
                                 name: 'ObjectId'
@@ -176,6 +221,7 @@ describe('AST', function() {
                                 type: Syntax.Identifier,
                                 name: 'removeDate'
                             },
+                            optional: false,
                             returnType: {
                                 type: Syntax.Identifier,
                                 name: 'uint'
@@ -250,6 +296,7 @@ describe('AST', function() {
                             type: Syntax.Identifier,
                             name: 'name'
                         },
+                        optional: false,
                         returnType: {
                             type: Syntax.Identifier,
                             name: 'string'
@@ -311,6 +358,7 @@ describe('AST', function() {
                                     type: Syntax.Identifier,
                                     name: 'bannedAt'
                                 },
+                                optional: false,
                                 returnType: {
                                     type: Syntax.Identifier,
                                     name: 'uint'
@@ -388,6 +436,7 @@ describe('AST', function() {
                             type: Syntax.Identifier,
                             name: 'id'
                         },
+                        optional: false,
                         returnType: {
                             name: 'uint',
                             type: Syntax.Identifier
@@ -431,6 +480,7 @@ describe('AST', function() {
                             type: Syntax.Identifier,
                             name: 'users'
                         },
+                        optional: false,
                         returnType: {
                             type: Syntax.Vector,
                             vectorType: {
@@ -522,6 +572,7 @@ describe('AST', function() {
                             type: Syntax.Identifier,
                             name: 'id'
                         },
+                        optional: false,
                         returnType: {
                             type: Syntax.Identifier,
                             name: 'long'
@@ -532,6 +583,7 @@ describe('AST', function() {
                             type: Syntax.Identifier,
                             name: 'firstName'
                         },
+                        optional: false,
                         returnType: {
                             type: Syntax.Identifier,
                             name: 'string'
@@ -542,6 +594,7 @@ describe('AST', function() {
                             type: Syntax.Identifier,
                             name: 'lastName'
                         },
+                        optional: false,
                         returnType: {
                             type: Syntax.Identifier,
                             name: 'string'

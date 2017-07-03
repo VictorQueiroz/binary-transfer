@@ -103,6 +103,11 @@ class Schema {
             const param = params[i];
             const { name: key, type } = param;
 
+            if(type & ParamEnum.OPTIONAL) {
+                if(d.readBool() !== true) {
+                    continue;
+                }
+            }
             if(type & ParamEnum.GENERIC) {
                 const genericType = param.genericType;
 
@@ -251,6 +256,15 @@ class Schema {
         for(i = 0; i < ii; i++) {
             const param = params[i];
             const { name: key, type } = param;
+
+            if(type & ParamEnum.OPTIONAL) {
+                if(object.hasOwnProperty(key)) {
+                    s.writeBool(true);
+                } else {
+                    s.writeBool(false);
+                    continue;
+                }
+            }
 
             let value = object[key];
 
