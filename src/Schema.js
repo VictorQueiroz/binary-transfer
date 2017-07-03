@@ -123,6 +123,12 @@ class Schema {
                 }
 
                 result[key] = list;
+            } else if(type & ParamEnum.NON_GENERIC) {
+                result[key] = this.decode({
+                    deserializer: d
+                });
+            } else {
+                throw new Error(`Invalid param type -> "${param.key}"`);
             }
         }
 

@@ -28,6 +28,25 @@ describe('Schema', function() {
         }]);
     });
 
+    it('should encode non generic param', function() {
+        assert.deepEqual(s.decode({
+            bytes: s.encode('userBanned', {
+                lastComment: {
+                    _name: 'comment',
+                    id: 120
+                },
+                banDate: ~~(Date.now()/1000)
+            })
+        }), {
+            _name: 'userBanned',
+            lastComment: {
+                _name: 'comment',
+                id: 120
+            },
+            banDate: ~~(Date.now()/1000)
+        });
+    });
+
     it('should encode with first argument as string', function() {
         assert.deepEqual(s.encode('void'), s.encode({
             _name: 'void'
