@@ -91,10 +91,9 @@ class Schema {
             return false;
         }
 
-        const { name, params } = this.containersById[id];
+        const container = this.containersById[id];
+        const { name, params } = container;
         const ii = params.length;
-
-        result._name = name;
 
         let i,
             j;
@@ -164,6 +163,9 @@ class Schema {
                 throw new Error(`Invalid param type -> "${param.key}"`);
             }
         }
+
+        result._name = name;
+        result._type = container.type;
 
         return result;
     }

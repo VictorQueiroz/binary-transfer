@@ -43,10 +43,12 @@ describe('Schema', function() {
                 comments: []
             })
         }), {
+            _type: 'User',
             _name: 'user',
             id: 100,
             name: '',
             photo: {
+                _type: 'Photo',
                 _name: 'photo',
                 id: 939494
             },
@@ -65,7 +67,9 @@ describe('Schema', function() {
             })
         }), {
             _name: 'userBanned',
+            _type: 'User',
             lastComment: {
+                _type: 'Comment',
                 _name: 'comment',
                 id: 120
             },
@@ -80,37 +84,56 @@ describe('Schema', function() {
     });
 
     it('should encode simple containers', function() {
-        const obj = {
+        assert.deepEqual(s.decode({
+            bytes: s.encode({
+                id: 139391,
+                name: 'First user',
+                _name: 'user',
+                comments: [],
+            })
+        }), {
             id: 139391,
             name: 'First user',
-            _name: 'user',
             comments: [],
-        };
-        assert.deepEqual(s.decode({
-            bytes: s.encode(obj)
-        }), obj);
+            _name: 'user',
+            _type: 'User'
+        });
     });
 
     it('should encode strict size types', function() {
-        const obj = {
-            _name: 'post',
-            id: crypto.randomBytes(12),
-            title: 'common title'
-        };
+        const randomBytes = crypto.randomBytes(12);
         assert.deepEqual(s.decode({
-            bytes: s.encode(obj)
-        }), obj);
+            bytes: s.encode({
+                _name: 'post',
+                id: randomBytes,
+                title: 'common title'
+            })
+        }), {
+            _name: 'post',
+            _type: 'Post',
+            id: randomBytes,
+            title: 'common title'
+        });
     });
 
     it('should encode vectors', function() {
-        const obj = {
+        assert.deepEqual(s.decode({
+            bytes: s.encode({
+                _name: 'postCommented',
+                comments: [{
+                    _name: 'comment',
+                    id: 0xffffff
+                }]
+            })
+        }), {
+            _type: 'Post',
             _name: 'postCommented',
             comments: [{
+                _type: 'Comment',
                 _name: 'comment',
                 id: 0xffffff
             }]
-        };
-        assert.deepEqual(s.decode({ bytes: s.encode(obj) }), obj);
+        });
     });
 
     it('should encode vector of generics', function() {
@@ -121,6 +144,7 @@ describe('Schema', function() {
                 comments: [100300,399993]
             })
         }), {
+            _type: 'User',
             _name: 'user',
             id: 2020,
             name: '',
