@@ -229,9 +229,25 @@ class Schema {
             s.writeString(value);
             break;
         case 'bytes':
-            s.writeBytes(value);
+            s.writeBytes(this.convertToBuffer(value));
             break;
         }
+    }
+
+    convertToBuffer(buffer){
+        if(Buffer.isBuffer(buffer))
+            return buffer;
+
+        if(_.isTypedArray(buffer))
+            return Buffer.from(buffer);
+
+        if(_.isString(buffer)){
+            if(buffer.substring(0,2) == '0x')
+                return Buffer.from(buffer.substring(2), 'hex');
+            return Buffer.from(buffer, 'utf8');
+        }
+
+        throw new Error('Invalid type for buffer: ' + typeof buffer);
     }
 
     encode(containerName, object) {
@@ -278,7 +294,7 @@ class Schema {
                     continue;
                 }
 
-                if(!object.hasOwnProperty(key)) {
+                if(!object[key]) {
                     value = this.getGenericDefault(genericType);
                 }
 
@@ -318,8 +334,21 @@ class Schema {
 
             serializer.writeString(value);
             break;
+        case 'bytes': {
+            const buffer = this.convertToBuffer(value);
+
+            if(buffer.byteLength !== size){
+                this.throwError(
+                    'Invalid size for param %s, ', key,
+                    'expected size %s ', size,
+                    'but got %s instead', value.length);
+            }
+
+            serializer.addBuffer(buffer);
+            break;
+        }
         default:
-            serializer.addBuffer(value);
+            throw new Error('Unsupported strict size ' + type);;
         }
     }
 

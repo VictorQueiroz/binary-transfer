@@ -28,10 +28,60 @@ describe('Schema', function() {
             type Comment {
                 comment -> id: uint
             }
+            type File {
+                file -> data: bytes
+            }
         `);
         s = new Schema([{
             containers
         }]);
+    });
+
+    it('should replace non-buffer input automatically', function() {
+        assert.deepEqual(s.decode({
+            bytes: s.encode('file', {
+                data: '1234567890'
+            })
+        }), {
+            _name: 'file',
+            _type: 'File',
+            data: Buffer.from('1234567890', 'utf8'),
+        });
+    });
+
+    it('should convert non-buffer input as hexadecimal string if the string start with 0x', function() {
+        assert.deepEqual(s.decode({
+            bytes: s.encode('post', {
+                id: '0x59d837c3da2c3d001879d322',
+                title: 'common title'
+            })
+        }), {
+            _name: 'post',
+            _type: 'Post',
+            id: Buffer.from('59d837c3da2c3d001879d322', 'hex'),
+            title: 'common title'
+        });
+    });
+
+    it('should accept typedarray in non-buffer params', function() {
+        const typedArray = new Uint8Array(12);
+        const string = '59d837c3da2c3d001879d322';
+
+        let j = 0;
+        for(let i = 0; i < string.length; i++)
+            typedArray[j++] = parseInt(string.substr(i, i + 2), 16);
+
+        assert.deepEqual(s.decode({
+            bytes: s.encode('post', {
+                id: typedArray,
+                title: 'common title'
+            })
+        }), {
+            _name: 'post',
+            _type: 'Post',
+            id: Buffer.from(string, 'hex'),
+            title: 'common title'
+        });
     });
 
     it('should encode container with optional param', function() {
