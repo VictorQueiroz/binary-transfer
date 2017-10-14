@@ -17,30 +17,19 @@
 
 #### Type
 
-A Type is a term to define the `Constructor` type. For example:
+A Type is a term to define the `Container` type. For example:
 
 ```
 User user -> id: uint, name: string;
 ```
 
-In the example above we have a constructor named `user`. We can say his type is `User`. A type cannot exist without a `Constructor`.
+In the example above we have a constructor named `user`. We can say his type is `User`. A type cannot exist without a `Container`.
 
 Characteristics
 
 - A type can have many constructors
 - A type must be linked to at least one constructor
 - A type name must start with uppercase in the scheme definition
-
-#### Constructor
-
-`Constructor` is a term to define a **particular set of data** container.
-
-For that matters, a `Constructor` have the following characteristics:
-
-- A constructor can have params
-- A constructor must have a type
-- A constructor must have a uint 32-bit header
-- A constructor name must start with lowercase in the scheme definition
 
 #### [Vector](https://github.com/VictorQueiroz/binary-transfer/blob/master/docs/Vector.md)
 

@@ -19,47 +19,26 @@ Account account -> id: int, username: string, email: string;
 
 ### Usage
 ```js
-import { dl, decode } from '../schema';
+import { Schema, language } from 'binary-transfer';
 
-let bytes;
+const parser = new language.SchemaParser();
+const schema = new Schema([
+    {containers: parser.parse(require('./schema.json'))}
+]);
 
-bytes = dl.Account.encode({
-    id: 100,
-    email: 'mark@jb.im',
-    username: 'mark_jb',
+const buffer = schema.encode('account', {
+    id: 3,
+    username: '',
+    email: ''
 });
 
-assert.deepEqual(decode(bytes).serialize().equals(new dl.Account({
-    id: 100,
-    email: 'mark@jb.im',
-    username: 'mark_jb'
-}).serialize());
-```
-
-### Vectors
-```
-Photo photoRegular -> location: Vector<float>;
-```
-
-```js
-import { dl, Vector } from '../schema';
-
-const bytes = dl.PhotoRegular.encode({
-    location: Vector.encode({
-        type: 'double',
-        items: [12.21211, -20.1211]
-    })
+assert.deepEqual(schema.decode({ bytes: buffer }), {
+    _name: 'account',
+    _type: 'Account',
+    id: 3,
+    username: '',
+    email: ''
 });
-
-// Equivalent to
-const photoRegular = new dl.PhotoRegular({
-    location: new Vector({
-        type: 'double',
-        items: [12.21211, -20.1211]
-    })
-});
-
-assert.ok(photoRegular.serialize().equals(bytes));
 ```
 
 ### Testing
