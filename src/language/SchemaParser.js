@@ -60,13 +60,24 @@ class SchemaParser {
         return comments;
     }
 
-    parseAst(ast, ctx = {}) {
+    getInitialContext() {
+        return {
+            parentContainers: [],
+            comments: [],
+            path: []
+        };
+    }
+
+    parseAst(ast, ctx = this.getInitialContext()) {
         switch(ast.type) {
         case Syntax.Schema:
             const comments = this.collectComments(ast.body);
+            const nextContext = Object.assign({}, ctx, {
+                comments
+            });
 
             ast.body.forEach(node => {
-                const result = this.parseAst(node, { comments });
+                const result = this.parseAst(node, nextContext);
 
                 switch(node.type) {
                 case Syntax.GenericAlias:
@@ -100,16 +111,18 @@ class SchemaParser {
         case Syntax.TypeGroup: {
             const body = ast.body;
             const comments = this.collectComments(body);
-            const groupName = this.parseAst(ast.name);
+            const groupName = ctx.path.concat(this.parseAst(ast.name)).join('.');
             const containers = [];
+            const nextContext = Object.assign({}, ctx, {
+                comments
+            });
 
             for(let i = 0; i < body.length; i++) {
                 if(body[i].type === Syntax.CommentBlock) {
                     continue;
                 }
-                containers.push(this.parseAst(body[i], {
-                    comments
-                }));
+
+                containers.push(this.parseAst(body[i], nextContext));
             }
             const ii = containers.length;
 
@@ -125,20 +138,21 @@ class SchemaParser {
             const body = ast.body;
             const result = {
                 doc: this.shiftNextComment(ctx),
-                name: this.parseAst(ast.name),
+                name: ctx.path.concat(this.parseAst(ast.name)).join('.'),
                 params: []
             };
             const comments = this.collectComments(body);
             const ii = body.length;
+            const nextContext = Object.assign({}, ctx, {
+                comments
+            });
 
             for(let i = 0; i < ii; i++) {
                 if(body[i].type === Syntax.CommentBlock) {
                     continue;
                 }
 
-                result.params.push(this.parseAst(body[i], {
-                    comments
-                }));
+                result.params.push(this.parseAst(body[i], nextContext));
             }
 
             return result;
@@ -146,90 +160,60 @@ class SchemaParser {
         case Syntax.Namespace: {
             const body = ast.body;
             const namespace = this.parseAst(ast.name);
-            const containers = [];
 
             const ii = body.length;
             const comments = this.collectComments(body);
+            const nextContext = Object.assign({}, ctx, {
+                comments
+            });
+            let result = [];
+
+            ctx.path.push(namespace);
+            ctx.parentContainers.splice(0, ctx.parentContainers.length);
 
             for(let i = 0; i < ii; i++) {
-                const result = this.parseAst(body[i], {
-                    comments
-                });
+                const response = this.parseAst(body[i], ctx);
 
-                switch(body[i].type) {
-                case Syntax.CommentBlock:
-                    break;
-                case Syntax.Namespace:
-                case Syntax.TypeGroup:
-                    result.forEach(container => {
-                        containers.push(container);
-                    });
-                    break;
-                case Syntax.TypeDeclaration:
-                    containers.push(result);
-                    break;
-                default:
-                    throw new Error(`Invalid ast type for namespace parsing -> ${body[i].type}`);
+                switch(body[i].type){
+                    case Syntax.Namespace:
+                        ctx.parentContainers.push(...response);
+                        break;
+                    case Syntax.TypeGroup:
+                        ctx.parentContainers.push(...response);
+                        break;
+                    case Syntax.TypeDeclaration:
+                        ctx.parentContainers.push(response);
                 }
             }
 
-            const _c = _.cloneDeep(containers);
+            for(let i = 0; i < ii; i++){
+                const response = this.parseAst(body[i], nextContext);
 
-            for(let i = 0; i < _c.length; i++) {
-                const container = _c[i];
-                const { params } = container;
-                const jj = params.length;
-
-                for(let j = 0; j < jj; j++) {
-                    const param = params[j];
-
-                    if(param.type & ParamEnum.GENERIC) {
-                        continue;
-                    }
-
-                    if(param.type & ParamEnum.VECTOR) {
-                        const foundInContext = containers.some(container => {
-                            return container.name === param.vectorOf ||
-                                    container.type === param.vectorOf;
-                        });
-
-                        if(foundInContext) {
-                            _c[i].params[j].name = param.name;
-                            _c[i].params[j].vectorOf = namespace + '.' + param.vectorOf;
-                        }
-                        continue;
-                    }
-
-                    if(param.type & ParamEnum.NON_GENERIC) {
-                        const reference = param.containerReference;
-                        const foundInContext = containers.some(container => {
-                            return container.name === reference ||
-                                    container.type === reference;
-                        });
-
-                        if(foundInContext) {
-                            _.update(_c, `${i}.params[${j}].containerReference`, reference => {
-                                return namespace + '.' + reference;
-                            });
-                        }
-                    }
+                switch(body[i].type){
+                    case Syntax.Namespace:
+                        result = result.concat(response);
+                        break;
+                    case Syntax.TypeGroup:
+                        result = result.concat(response);
+                        break;
+                    case Syntax.TypeDeclaration:
+                        result = result.concat(response);
                 }
-
-                _c[i].name = namespace + '.' + _c[i].name;
-                _c[i].type = namespace + '.' + _c[i].type;
-                this.crc(_c[i]);
             }
 
-            return _c;
+            ctx.path.pop();
+            ctx.parentContainers.splice(0, ctx.parentContainers.length);
+
+            return result;
         }
         case Syntax.TypeIdentifier:
-            return `${this.parseAst(ast.namespace)}.${this.parseAst(ast.property)}`;
+            return this.parseAst(ast.namespace) + '.' + this.parseAst(ast.property);
         case Syntax.TypeDeclaration: {
             const body = ast.body;
             const result = {
                 doc: this.shiftNextComment(ctx),
-                name: this.parseAst(ast.ctor),
-                type: this.parseAst(ast.name),
+                name: ctx.path.concat(this.parseAst(ast.ctor)).join('.'),
+                type: ctx.path.concat(this.parseAst(ast.name)).join('.'),
                 params: new Array(body.length)
             };
 
@@ -245,26 +229,19 @@ class SchemaParser {
             return result;
         }
         case Syntax.TypeProperty: {
+            const name = this.parseAst(ast.key);
+
             const result = {
-                name: this.parseAst(ast.key),
+                name,
                 type: 0,
                 doc: this.shiftNextComment(ctx)
             };
 
-            this.parseParamType(ast.returnType, result, ast.optional);
+            this.parseParamType(ast.returnType, result, ast.optional, ctx);
             return result;
         }
         case Syntax.CommentBlock: {
             return ast.lines.join('\n');
-        }
-        case Syntax.TypeSizeSpecification: {
-            const name = this.parseAst(ast.name);
-            const size = this.parseAst(ast.size);
-
-            ctx.type |= ParamEnum.STRICT_SIZE;
-            ctx.size = size;
-            
-            return name;
         }
         case Syntax.Literal:
             return ast.value;
@@ -324,12 +301,60 @@ class SchemaParser {
         result.id = crc.crc32(str);
     }
 
-    parseNonGenericProperty(type, result) {
-        result.type |= ParamEnum.NON_GENERIC;
-        result.containerReference = type;        
+    getContainerType(type, ctx) {
+        let path = [].concat(ctx.path);
+        let matches = false;
+
+        if(genericTypes.indexOf(type) > -1)
+            return type;
+
+        for(let i = 0; i < ctx.parentContainers.length; i++){
+            const container = ctx.parentContainers[i];
+            const strings = [
+                container.name.split('.'),
+                container.type.split('.')
+            ];
+
+            const namespaceMatch = strings.some(string => (
+                string.slice(0, path.length).join('.') === path.join('.')
+            ));
+
+            if(!namespaceMatch)
+                continue;
+
+            const matches = strings.some(string => (
+                string.slice(path.length).join('.') === type
+            ));
+
+            if(matches)
+                return path.concat(type).join('.');
+        }
+
+        return type;
     }
 
-    parseParamType(ast, result, optional) {
+    parseNonGenericProperty(type, result, ctx) {
+        result.type |= ParamEnum.NON_GENERIC;
+        result.containerReference = this.getContainerType(type, ctx);
+    }
+
+    parseParamTypeAlias(ast, result, ctx) {
+        switch(ast.type) {
+            case Syntax.TypeSizeSpecification: {
+                const name = this.parseAst(ast.name);
+                const size = this.parseAst(ast.size);
+
+                result.type |= ParamEnum.STRICT_SIZE;
+                result.size = size;
+                
+                return name;
+            }
+            default:
+                return this.parseAst(ast, ctx);
+        }
+    }
+
+    parseParamType(ast, result, optional, ctx) {
         if(optional) {
             result.type |= ParamEnum.OPTIONAL;
         }
@@ -337,7 +362,7 @@ class SchemaParser {
         case Syntax.TypeIdentifier:
             const type = this.parseAst(ast.namespace) + '.' + this.parseAst(ast.property);
 
-            this.parseNonGenericProperty(type, result);
+            this.parseNonGenericProperty(type, result, ctx);
             break;
         case Syntax.Identifier:
             let name = ast.name;
@@ -345,7 +370,7 @@ class SchemaParser {
             if(this.aliases.hasOwnProperty(name)) {
                 const alias = this.aliases[name];
 
-                name = this.parseAst(alias, result);
+                name = this.parseParamTypeAlias(alias, result, ctx);
             }
 
             if(genericTypes.indexOf(name) !== -1) {
@@ -354,13 +379,13 @@ class SchemaParser {
                 break;
             }
 
-            this.parseNonGenericProperty(name, result);
+            this.parseNonGenericProperty(name, result, ctx);
             break;
         case Syntax.Vector:
             const vectorOf = this.parseAst(ast.vectorType);
 
             result.type |= ParamEnum.VECTOR;
-            result.vectorOf = vectorOf;
+            result.vectorOf = this.getContainerType(vectorOf, ctx);
             break;
         default:
             throw new Error(`Invalid ast type -> ${ast.type}`);

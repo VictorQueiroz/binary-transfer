@@ -550,4 +550,55 @@ describe('SchemaParser', function() {
             name: 'user.userRegular'
         }]);
     });
+
+    it('should support another container requiring a previously defined container', function() {
+        assert.deepEqual(schemaParser.parse(`
+            namespace admin {
+                type User {
+                    user -> posts: Vector<Post>
+                }
+                type Post {
+                    post -> id: uint
+                }
+            }
+            namespace admin2 {
+                type User {
+                    user -> posts: Vector<Post>
+                }
+            }
+        `), [{
+            id: 2409565204,
+            doc: [],
+            name: 'admin.user',
+            params: [{
+                doc: [],
+                name: 'posts',
+                type: ParamEnum.VECTOR,
+                vectorOf: 'admin.Post'
+            }],
+            type: 'admin.User'
+        }, {
+            doc: [],
+            id: 1849907555,
+            name: 'admin.post',
+            params: [{
+                doc: [],
+                genericType: 'uint',
+                name: 'id',
+                type: ParamEnum.GENERIC
+            }],
+            type: 'admin.Post'
+        }, {
+            id: 931914302,
+            doc: [],
+            name: 'admin2.user',
+            params: [{
+                name: 'posts',
+                type: ParamEnum.VECTOR,
+                vectorOf: 'Post',
+                doc: []
+            }],
+            type: 'admin2.User'
+        }]);
+    });
 });
