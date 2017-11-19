@@ -5,7 +5,6 @@ tdd:
 	--colors \
 	--bail \
 	--watch \
-	--inspect \
 	--require babel-register \
 	--check-leaks
 
