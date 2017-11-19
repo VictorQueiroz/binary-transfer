@@ -22,6 +22,47 @@ describe('SchemaParser', function() {
         });
     });
 
+    it('should support traits as a container type', function() {
+        assert.deepEqual(schemaParser.parse(`
+            trait Request;
+
+            type SendMessage implements Request {
+                sendMessage
+            }
+
+            type InvokeWithLayer {
+                invokeWithLayer {
+                    version: uint;
+                    request: Request;
+                }
+            }
+        `), [{
+            id: 96066025,
+            traits: ['Request'],
+            name: 'sendMessage',
+            type: 'SendMessage',
+            doc: [],
+            params: []
+        }, {
+            id: 2235139409,
+            doc: [],
+            params: [{
+                type: ParamEnum.GENERIC,
+                genericType: 'uint',
+                name: 'version',
+                doc: []
+            }, {
+                type: ParamEnum.NON_GENERIC,
+                containerReference: 'Request',
+                doc: [],
+                name: 'request'
+            }],
+            traits: [],
+            name: 'invokeWithLayer',
+            type: 'InvokeWithLayer'
+        }]);
+    });
+
     it('should support optional param', function() {
         assert.deepEqual(schemaParser.parse(`
             photo : Photo -> id: uint;
@@ -32,6 +73,7 @@ describe('SchemaParser', function() {
         `), [{
             doc: [],
             id: 1069932124,
+            traits: [],
             name: 'photo',
             params: [{
                 doc: [],
@@ -44,6 +86,7 @@ describe('SchemaParser', function() {
             id: 2244306929,
             doc: [],
             name: 'user',
+            traits: [],
             params: [{
                 doc: [],
                 genericType: 'uint',
@@ -69,6 +112,7 @@ describe('SchemaParser', function() {
         `), [{
             id: 2048757241,
             doc: [],
+            traits: [],
             name: 'post',
             params: [{
                 type: ParamEnum.GENERIC,
@@ -97,6 +141,7 @@ describe('SchemaParser', function() {
             doc: [' photo container'],
             id: 1069932124,
             name: 'photo',
+            traits: [],
             params: [{
                 doc: [],
                 genericType: 'uint',
@@ -108,6 +153,7 @@ describe('SchemaParser', function() {
             doc: [' set user profile picture'],
             id: 588240056,
             name: 'admin.user.SetProfilePhoto',
+            traits: [],
             params: [{
                 containerReference: 'Photo',
                 doc: [],
@@ -127,6 +173,7 @@ describe('SchemaParser', function() {
             id: 3178530016,
             doc: [],
             name: 'post',
+            traits: [],
             params: [{
                 genericType: 'bytes',
                 size: 12,
@@ -155,6 +202,7 @@ describe('SchemaParser', function() {
         `), [{
             id: 2318995921,
             doc: [],
+            traits: [],
             params: [{
                 doc: [],
                 type: ParamEnum.GENERIC,
@@ -166,6 +214,7 @@ describe('SchemaParser', function() {
         }, {
             id: 3029264984,
             doc: [],
+            traits: [],
             params: [{
                 doc: [],
                 type: ParamEnum.GENERIC,
@@ -177,6 +226,7 @@ describe('SchemaParser', function() {
         }, {
             id: 4168132268,
             name: 'posts.post',
+            traits: [],
             doc: [],
             params: [{
                 doc: [],
@@ -209,6 +259,7 @@ describe('SchemaParser', function() {
             user : User
         `), [{
             id: 3519479065,
+            traits: [],
             doc: [
                 ' A ',
                 ' B ',
@@ -220,6 +271,7 @@ describe('SchemaParser', function() {
             type: 'Post'
         }, {
             id: 2648436498,
+            traits: [],
             doc: [
                 ' E',
                 ' F',
@@ -240,6 +292,7 @@ describe('SchemaParser', function() {
             }
         `), [{
             id: 3528988256,
+            traits: [],
             doc: [" default post "],
             params: [],
             type: 'post.Post',
@@ -263,6 +316,7 @@ describe('SchemaParser', function() {
             id: 2115106932,
             doc: [],
             name: 'post.post',
+            traits: [],
             params: [{
                 doc: [],
                 type: ParamEnum.VECTOR,
@@ -273,6 +327,7 @@ describe('SchemaParser', function() {
         }, {
             id: 2733325657,
             doc: [],
+            traits: [],
             name: 'post.comment',
             params: [{
                 doc: [],
@@ -298,6 +353,7 @@ describe('SchemaParser', function() {
             id: 33940583,
             name: 'posts.post',
             doc: [],
+            traits: [],
             params: [{
                 doc: [],
                 type: ParamEnum.GENERIC,
@@ -323,18 +379,21 @@ describe('SchemaParser', function() {
         `), [{
             id: 1960609718,
             params: [],
+            traits: [],
             doc: [],
             name: 'post',
             type: 'Post'
         }, {
             id: 1050142408,
             name: 'postEdited',
+            traits: [],
             doc: [],
             params: [],
             type: 'Post'
         }, {
             id: 3428278400,
             name: 'postDeleted',
+            traits: [],
             doc: [],
             params: [],
             type: 'Post'
@@ -356,16 +415,19 @@ describe('SchemaParser', function() {
             doc: [],
             name: 'user',
             params: [],
+            traits: [],
             type: 'User'
         }, {
             id: 2071494210,
             doc: [],
             name: 'userDeleted',
+            traits: [],
             params: [],
             type: 'User'
         }, {
             id: 1321802668,
             doc: [],
+            traits: [],
             name: 'userMoved',
             params: [{
                 type: ParamEnum.GENERIC,
@@ -392,6 +454,7 @@ describe('SchemaParser', function() {
             id: 112001971,
             doc: [],
             name: 'user.user',
+            traits: [],
             params: [{
                 doc: [],
                 type: ParamEnum.GENERIC,
@@ -403,6 +466,7 @@ describe('SchemaParser', function() {
             id: 2018556925,
             doc: [],
             name: 'posts.post',
+            traits: [],
             params: [{
                 doc: [],
                 type: ParamEnum.NON_GENERIC,
@@ -417,6 +481,7 @@ describe('SchemaParser', function() {
             type: 'posts.Post'
         }, {
             id: 342777446,
+            traits: [],
             doc: [],
             name: 'accounts.account',
             params: [],
@@ -437,10 +502,12 @@ describe('SchemaParser', function() {
             id: 1224281048,
             doc: [' default post '],
             params: [],
+            traits: [],
             type: 'Post',
             name: 'postDefault'
         }, {
             id: 3970390829,
+            traits: [],
             params: [{
                 type: ParamEnum.GENERIC,
                 genericType: 'uint',
@@ -466,12 +533,14 @@ describe('SchemaParser', function() {
             }
         `), [{
             id: 2788488578,
+            traits: [],
             doc: [],
             name: 'posts.postDefault',
             type: 'posts.Post',
             params: []
         }, {
             id: 3062764745,
+            traits: [],
             doc: [],
             name: 'posts.postRemoved',
             type: 'posts.Post',
@@ -479,12 +548,14 @@ describe('SchemaParser', function() {
         }, {
             id: 3817071662,
             doc: [],
+            traits: [],
             name: 'posts.postDeleted',
             type: 'posts.Post',
             params: []
         }, {
             id: 2589134390,
             doc: [],
+            traits: [],
             params: [{
                 doc: [],
                 type: ParamEnum.NON_GENERIC,
@@ -495,6 +566,7 @@ describe('SchemaParser', function() {
             type: 'posts.Post'
         }, {
             id: 3723934202,
+            traits: [],
             doc: [],
             name: 'posts.comment',
             params: [],
@@ -509,6 +581,7 @@ describe('SchemaParser', function() {
         `), [{
             id: 2158046050,
             doc: [],
+            traits: [],
             type: 'Account',
             params: [{
                 genericType: 'int',
@@ -531,6 +604,7 @@ describe('SchemaParser', function() {
             id: 659851147,
             doc: [],
             type: 'Void',
+            traits: [],
             params: [],
             name: 'void'
         }]);
@@ -541,6 +615,7 @@ describe('SchemaParser', function() {
             id: 2167712555,
             doc: [],
             type: 'user.User',
+            traits: [],
             params: [{
                 genericType: 'int',
                 type: ParamEnum.GENERIC,
@@ -570,6 +645,7 @@ describe('SchemaParser', function() {
             id: 2409565204,
             doc: [],
             name: 'admin.user',
+            traits: [],
             params: [{
                 doc: [],
                 name: 'posts',
@@ -580,6 +656,7 @@ describe('SchemaParser', function() {
         }, {
             doc: [],
             id: 1849907555,
+            traits: [],
             name: 'admin.post',
             params: [{
                 doc: [],
@@ -591,6 +668,7 @@ describe('SchemaParser', function() {
         }, {
             id: 931914302,
             doc: [],
+            traits: [],
             name: 'admin2.user',
             params: [{
                 name: 'posts',

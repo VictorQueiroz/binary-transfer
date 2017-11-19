@@ -10,10 +10,12 @@ class SchemaParser {
     constructor() {
         this.ast = new AST();
         this.aliases = {};
+        this.traits = [];
         this.containers = [];
     }
 
     parse(schema) {
+        this.traits = [];
         this.aliases = [];
         this.containers = [];
 
@@ -62,6 +64,7 @@ class SchemaParser {
 
     getInitialContext() {
         return {
+            traits: [],
             parentContainers: [],
             comments: [],
             path: []
@@ -82,6 +85,7 @@ class SchemaParser {
                 switch(node.type) {
                 case Syntax.GenericAlias:
                 case Syntax.CommentBlock:
+                case Syntax.TraitDeclaration:
                     break;
                 case Syntax.TypeDeclaration:
                     this.containers.push(result);
@@ -97,6 +101,14 @@ class SchemaParser {
                 }
             });
             break;
+        case Syntax.TraitDeclaration: {
+            const trait = {
+                name: this.parseAst(ast.name),
+                params: ast.body.map(node => this.parseAst(node))
+            };
+            this.traits.push(trait);
+            return trait;
+        }
         case Syntax.GenericAlias: {
             const aliasName = this.parseAst(ast.aliasName);
 
@@ -113,8 +125,10 @@ class SchemaParser {
             const comments = this.collectComments(body);
             const groupName = ctx.path.concat(this.parseAst(ast.name)).join('.');
             const containers = [];
+            const traits = ast.traits.map(trait => this.parseAst(trait, ctx));
             const nextContext = Object.assign({}, ctx, {
-                comments
+                comments,
+                traits
             });
 
             for(let i = 0; i < body.length; i++) {
@@ -139,7 +153,8 @@ class SchemaParser {
             const result = {
                 doc: this.shiftNextComment(ctx),
                 name: ctx.path.concat(this.parseAst(ast.name)).join('.'),
-                params: []
+                params: [],
+                traits: ctx.traits
             };
             const comments = this.collectComments(body);
             const ii = body.length;
@@ -214,6 +229,7 @@ class SchemaParser {
                 doc: this.shiftNextComment(ctx),
                 name: ctx.path.concat(this.parseAst(ast.ctor)).join('.'),
                 type: ctx.path.concat(this.parseAst(ast.name)).join('.'),
+                traits: [],
                 params: new Array(body.length)
             };
 
@@ -283,7 +299,7 @@ class SchemaParser {
         let str = '';
 
         const paramsStr = [];
-        const { name, type, params } = result;
+        const { name, type, params, traits = [] } = result;
 
         str += name;
         str += ':';
@@ -295,6 +311,9 @@ class SchemaParser {
         }
 
         str += paramsStr.join(' ');
+
+        if(traits.length)
+            str += '[traits:' + traits.join(',') + ']';
 
         // console.log(str);
 

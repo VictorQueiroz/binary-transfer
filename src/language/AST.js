@@ -93,8 +93,27 @@ class AST {
         if(this.expect('alias')) {
             return this.genericAlias();
         }
+        if(this.expect('trait')) {
+            return this.trait();
+        }
 
         return this.typeDeclaration();
+    }
+
+    trait() {
+        const name = this.identifier();
+        let body = [];
+
+        if(this.expect('{'))
+            body = this.typeBody();
+        else
+            this.consume(';');
+
+        return {
+            type: Syntax.TraitDeclaration,
+            name,
+            body
+        };
     }
 
     genericAlias() {
@@ -139,6 +158,13 @@ class AST {
 
     typeGroup() {
         const name = this.identifier();
+        const traits = [];
+
+        if(this.expect('implements')) {
+            do {
+                traits.push(this.identifier());
+            } while(this.expect(','));
+        }
 
         this.consume('{');
 
@@ -155,7 +181,8 @@ class AST {
         return {
             name,
             type: Syntax.TypeGroup,
-            body
+            body,
+            traits
         };
     }
 

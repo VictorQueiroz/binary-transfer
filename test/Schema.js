@@ -37,6 +37,41 @@ describe('Schema', function() {
         }]);
     });
 
+    it('should encode param references to traits', function() {
+        const containers = new language.SchemaParser().parse(`
+            trait Request;
+            type CreateUser implements Request {
+                createUser
+            }
+            type InvokeWithLayer {
+                invokeWithLayer {
+                    version: uint;
+                    request: Request;
+                }
+            }
+        `);
+        s = new Schema([{
+            containers
+        }]);
+        assert.deepEqual(s.decode({
+            bytes: s.encode('invokeWithLayer', {
+                version: 10,
+                request: {
+                    _name: 'createUser',
+                    _type: 'CreateUser'
+                }
+            })
+        }), {
+            version: 10,
+            request: {
+                _name: 'createUser',
+                _type: 'CreateUser'
+            },
+            _name: 'invokeWithLayer',
+            _type: 'InvokeWithLayer'
+        });
+    });
+
     it('should replace non-buffer input automatically', function() {
         assert.deepEqual(s.decode({
             bytes: s.encode('file', {
