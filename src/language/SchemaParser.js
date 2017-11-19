@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import crc from 'crc';
 import { Buffer } from 'buffer';
 import { ParamEnum } from '../enums';
