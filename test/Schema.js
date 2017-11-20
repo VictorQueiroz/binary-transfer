@@ -65,8 +65,10 @@ describe('Schema', function() {
             version: 10,
             request: {
                 _name: 'createUser',
-                _type: 'CreateUser'
+                _type: 'CreateUser',
+                _traits: ['Request'],
             },
+            _traits: [],
             _name: 'invokeWithLayer',
             _type: 'InvokeWithLayer'
         });
@@ -80,6 +82,7 @@ describe('Schema', function() {
         }), {
             _name: 'file',
             _type: 'File',
+            _traits: [],
             data: Buffer.from('1234567890', 'utf8'),
         });
     });
@@ -93,6 +96,7 @@ describe('Schema', function() {
         }), {
             _name: 'post',
             _type: 'Post',
+            _traits: [],
             id: Buffer.from('59d837c3da2c3d001879d322', 'hex'),
             title: 'common title'
         });
@@ -113,6 +117,7 @@ describe('Schema', function() {
             })
         }), {
             _name: 'post',
+            _traits: [],
             _type: 'Post',
             id: Buffer.from(string, 'hex'),
             title: 'common title'
@@ -130,11 +135,13 @@ describe('Schema', function() {
         }), {
             _type: 'User',
             _name: 'user',
+            _traits: [],
             id: 100,
             name: '',
             photo: {
                 _type: 'Photo',
                 _name: 'photo',
+                _traits: [],
                 id: 939494
             },
             comments: []
@@ -153,9 +160,11 @@ describe('Schema', function() {
         }), {
             _name: 'userBanned',
             _type: 'User',
+            _traits: [],
             lastComment: {
                 _type: 'Comment',
                 _name: 'comment',
+                _traits: [],
                 id: 120
             },
             banDate: ~~(Date.now()/1000)
@@ -180,6 +189,7 @@ describe('Schema', function() {
             id: 139391,
             name: 'First user',
             comments: [],
+            _traits: [],
             _name: 'user',
             _type: 'User'
         });
@@ -196,6 +206,7 @@ describe('Schema', function() {
         }), {
             _name: 'post',
             _type: 'Post',
+            _traits: [],
             id: randomBytes,
             title: 'common title'
         });
@@ -213,9 +224,11 @@ describe('Schema', function() {
         }), {
             _type: 'Post',
             _name: 'postCommented',
+            _traits: [],
             comments: [{
                 _type: 'Comment',
                 _name: 'comment',
+                _traits: [],
                 id: 0xffffff
             }]
         });
@@ -231,6 +244,7 @@ describe('Schema', function() {
         }), {
             _type: 'User',
             _name: 'user',
+            _traits: [],
             id: 2020,
             name: '',
             comments: [100300,399993]

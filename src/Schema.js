@@ -178,6 +178,7 @@ class Schema {
 
         result._name = name;
         result._type = container.type;
+        result._traits = container.traits;
 
         return result;
     }
