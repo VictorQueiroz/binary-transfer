@@ -145,7 +145,19 @@ class Schema {
                     } else if(containersByName.hasOwnProperty(name)) {
                         containers.push(containersByName[name]);
                     } else {
-                        throw new Error(`Invalid container named -> ${name}`);
+                        let found = false;
+
+                        for(let key of Object.keys(this.containers)) {
+                            const container = this.containers[key];
+
+                            if(container.traits.indexOf(name) > -1) {
+                                found = true;
+                                containers.push(container);
+                            }
+                        }
+                        
+                        if(!found)
+                            throw new Error(`Invalid container or trait named -> ${name}`);
                     }
 
                     const ids = containers.map(c => c.id);
@@ -166,6 +178,7 @@ class Schema {
 
         result._name = name;
         result._type = container.type;
+        result._traits = container.traits;
 
         return result;
     }

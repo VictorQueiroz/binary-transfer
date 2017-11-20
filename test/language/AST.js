@@ -122,6 +122,7 @@ describe('AST', function() {
                             }
                         }]
                     }],
+                    traits: [],
                     name: {
                         type: Syntax.Identifier,
                         name: 'Post'
@@ -152,6 +153,7 @@ describe('AST', function() {
                     }
                 }, {
                     type: Syntax.TypeGroup,
+                    traits: [],
                     body: [{
                         type: Syntax.TypeGroupContainer,
                         name: {
@@ -192,6 +194,7 @@ describe('AST', function() {
                 type: Syntax.Schema,
                 body: [{
                     type: Syntax.TypeGroup,
+                    traits: [],
                     name: {
                         type: Syntax.Identifier,
                         name: 'Post'
@@ -335,6 +338,7 @@ describe('AST', function() {
                     },
                     body: [{
                         type: Syntax.TypeGroup,
+                        traits: [],
                         name: {
                             type: Syntax.Identifier,
                             name: 'User'
@@ -541,6 +545,87 @@ describe('AST', function() {
                 body: [{
                     type: Syntax.CommentBlock,
                     lines: [' methods ']
+                }]
+            });
+        });
+
+        it('should support trait declaration', function() {
+            deepEqual(ast.ast(`
+                trait Request {
+
+                }
+
+                namespace post {
+                    type GetPostsResponse implements Request {
+                        getPosts
+                    }
+                }
+
+                type InvokeWithPermission {
+                    invokeWithPermission {
+                        payload: Request;
+                    }
+                }
+            `), {
+                type: Syntax.Schema,
+                body: [{
+                    type: Syntax.TraitDeclaration,
+                    body: [],
+                    name: {
+                        type: Syntax.Identifier,
+                        name: 'Request'
+                    }
+                }, {
+                    type: Syntax.Namespace,
+                    name: {
+                        type: Syntax.Identifier,
+                        name: 'post'
+                    },
+                    body: [{
+                        type: Syntax.TypeGroup,
+                        body: [{
+                            type: Syntax.TypeGroupContainer,
+                            name: {
+                                name: 'getPosts',
+                                type: Syntax.Identifier
+                            },
+                            body: []
+                        }],
+                        name: {
+                            type: Syntax.Identifier,
+                            name: 'GetPostsResponse'
+                        },
+                        traits: [{
+                            type: Syntax.Identifier,
+                            name: 'Request'
+                        }]
+                    }]
+                }, {
+                    type: Syntax.TypeGroup,
+                    traits: [],
+                    name: {
+                        type: Syntax.Identifier,
+                        name: 'InvokeWithPermission'
+                    },
+                    body: [{
+                        type: Syntax.TypeGroupContainer,
+                        name: {
+                            type: Syntax.Identifier,
+                            name: 'invokeWithPermission'
+                        },
+                        body: [{
+                            type: Syntax.TypeProperty,
+                            key: {
+                                name: 'payload',
+                                type: Syntax.Identifier
+                            },
+                            optional: false,
+                            returnType: {
+                                type: Syntax.Identifier,
+                                name: 'Request'
+                            }
+                        }]
+                    }]
                 }]
             });
         });

@@ -11,6 +11,7 @@ export const Syntax = {
     TypeProperty: 'TypeProperty',
     TypeIdentifier: 'TypeIdentifier',
     TypeDeclaration: 'TypeDeclaration',
+    TraitDeclaration: 'TraitDeclaration',
     TypeGroupContainer: 'TypeGroupContainer',
     TypeSizeSpecification: 'TypeSizeSpecification'
 };
