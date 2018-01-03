@@ -53,15 +53,15 @@ describe('Schema', function() {
         s = new Schema([{
             containers
         }]);
-        assert.deepEqual(s.decode({
-            bytes: s.encode('invokeWithLayer', {
-                version: 10,
-                request: {
-                    _name: 'createUser',
-                    _type: 'CreateUser'
-                }
-            })
-        }), {
+        const buffer = s.encode('invokeWithLayer', {
+            version: 10,
+            request: {
+                _name: 'createUser',
+                _type: 'CreateUser'
+            }
+        });
+
+        assert.deepEqual(s.decode(buffer), {
             version: 10,
             request: {
                 _name: 'createUser',
@@ -75,11 +75,9 @@ describe('Schema', function() {
     });
 
     it('should replace non-buffer input automatically', function() {
-        assert.deepEqual(s.decode({
-            bytes: s.encode('file', {
-                data: '1234567890'
-            })
-        }), {
+        assert.deepEqual(s.decode(s.encode('file', {
+            data: '1234567890'
+        })), {
             _name: 'file',
             _type: 'File',
             _traits: [],
@@ -88,12 +86,10 @@ describe('Schema', function() {
     });
 
     it('should convert non-buffer input as hexadecimal string if the string start with 0x', function() {
-        assert.deepEqual(s.decode({
-            bytes: s.encode('post', {
-                id: '0x59d837c3da2c3d001879d322',
-                title: 'common title'
-            })
-        }), {
+        assert.deepEqual(s.decode(s.encode('post', {
+            id: '0x59d837c3da2c3d001879d322',
+            title: 'common title'
+        })), {
             _name: 'post',
             _type: 'Post',
             _traits: [],
@@ -110,12 +106,10 @@ describe('Schema', function() {
         for(let i = 0; i < string.length; i++)
             typedArray[j++] = parseInt(string.substr(i, i + 2), 16);
 
-        assert.deepEqual(s.decode({
-            bytes: s.encode('post', {
-                id: typedArray,
-                title: 'common title'
-            })
-        }), {
+        assert.deepEqual(s.decode(s.encode('post', {
+            id: typedArray,
+            title: 'common title'
+        })), {
             _name: 'post',
             _traits: [],
             _type: 'Post',
@@ -125,14 +119,12 @@ describe('Schema', function() {
     });
 
     it('should encode container with optional param', function() {
-        assert.deepEqual(s.decode({
-            bytes: s.encode('user', {
-                id: 100,
-                name: '',
-                photo: { _name: 'photo', id: 939494 },
-                comments: []
-            })
-        }), {
+        assert.deepEqual(s.decode(s.encode('user', {
+            id: 100,
+            name: '',
+            photo: { _name: 'photo', id: 939494 },
+            comments: []
+        })), {
             _type: 'User',
             _name: 'user',
             _traits: [],
@@ -149,15 +141,13 @@ describe('Schema', function() {
     });
 
     it('should encode non generic param', function() {
-        assert.deepEqual(s.decode({
-            bytes: s.encode('userBanned', {
-                lastComment: {
-                    _name: 'comment',
-                    id: 120
-                },
-                banDate: ~~(Date.now()/1000)
-            })
-        }), {
+        assert.deepEqual(s.decode(s.encode('userBanned', {
+            lastComment: {
+                _name: 'comment',
+                id: 120
+            },
+            banDate: ~~(Date.now()/1000)
+        })), {
             _name: 'userBanned',
             _type: 'User',
             _traits: [],
@@ -178,14 +168,12 @@ describe('Schema', function() {
     });
 
     it('should encode simple containers', function() {
-        assert.deepEqual(s.decode({
-            bytes: s.encode({
-                id: 139391,
-                name: 'First user',
-                _name: 'user',
-                comments: [],
-            })
-        }), {
+        assert.deepEqual(s.decode(s.encode({
+            id: 139391,
+            name: 'First user',
+            _name: 'user',
+            comments: [],
+        })), {
             id: 139391,
             name: 'First user',
             comments: [],
@@ -197,13 +185,11 @@ describe('Schema', function() {
 
     it('should encode strict size types', function() {
         const randomBytes = crypto.randomBytes(12);
-        assert.deepEqual(s.decode({
-            bytes: s.encode({
-                _name: 'post',
-                id: randomBytes,
-                title: 'common title'
-            })
-        }), {
+        assert.deepEqual(s.decode(s.encode({
+            _name: 'post',
+            id: randomBytes,
+            title: 'common title'
+        })), {
             _name: 'post',
             _type: 'Post',
             _traits: [],
@@ -213,15 +199,13 @@ describe('Schema', function() {
     });
 
     it('should encode vectors', function() {
-        assert.deepEqual(s.decode({
-            bytes: s.encode({
-                _name: 'postCommented',
-                comments: [{
-                    _name: 'comment',
-                    id: 0xffffff
-                }]
-            })
-        }), {
+        assert.deepEqual(s.decode(s.encode({
+            _name: 'postCommented',
+            comments: [{
+                _name: 'comment',
+                id: 0xffffff
+            }]
+        })), {
             _type: 'Post',
             _name: 'postCommented',
             _traits: [],
@@ -235,13 +219,11 @@ describe('Schema', function() {
     });
 
     it('should encode vector of generics', function() {
-        assert.deepEqual(s.decode({
-            bytes: s.encode('user', {
-                id: 2020,
-                name: '',
-                comments: [100300,399993]
-            })
-        }), {
+        assert.deepEqual(s.decode(s.encode('user', {
+            id: 2020,
+            name: '',
+            comments: [100300,399993]
+        })), {
             _type: 'User',
             _name: 'user',
             _traits: [],
