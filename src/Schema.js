@@ -200,6 +200,8 @@ class Schema {
         case 'long':
         case 'ulong':
         case 'short':
+        case 'double':
+        case 'float':
         case 'ushort':
             return 0;
         case 'bool':
