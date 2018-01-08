@@ -77,13 +77,12 @@ class Schema {
         }
     }
 
-    decode({ bytes, deserializer: d }) {
+    decode(buffer){
+        return this.decodeDeserializer(new Deserializer(buffer));
+    }
+
+    decodeDeserializer(d) {
         const result = {};
-
-        if(bytes) {
-            d = new Deserializer(bytes);
-        }
-
         const id = d.readUInt();
 
         if(!this.containersById.hasOwnProperty(id)) {
@@ -127,9 +126,7 @@ class Schema {
                     }
                 } else {
                     for(j = 0; j < length; j++) {
-                        list[j] = this.decode({
-                            deserializer: d
-                        });
+                        list[j] = this.decodeDeserializer(d);
                     }
                 }
 
@@ -168,9 +165,7 @@ class Schema {
                     }
                 }
 
-                result[key] = this.decode({
-                    deserializer: d
-                });
+                result[key] = this.decodeDeserializer(d);
             } else {
                 throw new Error(`Invalid param type -> "${param.key}"`);
             }
