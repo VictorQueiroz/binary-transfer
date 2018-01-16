@@ -23,21 +23,43 @@ import { Schema, language } from 'binary-transfer';
 
 const parser = new language.SchemaParser();
 const schema = new Schema([
-    {containers: parser.parse(require('./schema.json'))}
+    {containers: parser.parse(`
+        type Account {
+            account -> id: int,
+                        username: string,
+                        email: string,
+                        posts: Vector<Post>
+        }
+        type Post {
+            post -> id: int,
+                    title: string,
+                    body: string
+        }
+    `)}
 ]);
 
 const buffer = schema.encode('account', {
     id: 3,
     username: '',
-    email: ''
+    email: '',
+    posts: []
 });
 
 assert.deepEqual(schema.decode(buffer), {
-    _name: 'account',
-    _type: 'Account',
     id: 3,
     username: '',
-    email: ''
+    email: '',
+    posts: [{
+        id: 100,
+        title: 'This is my first post',
+        body: 'Empty body, please edit it',
+        _name: 'post',
+        _type: 'Post',
+        _traits: []
+    }],
+    _name: 'account',
+    _type: 'Account',
+    _traits: []
 });
 ```
 
