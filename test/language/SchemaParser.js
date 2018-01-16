@@ -22,6 +22,71 @@ describe('SchemaParser', function() {
         });
     });
 
+    it('should get containers from inside namespace even if there is more defined namespaces', function(){
+        assert.deepEqual(schemaParser.parse(`
+            namespace user {
+                type User {
+                    user -> id: uint, posts: Vector<Post>;
+                }
+                type Post {
+                    post -> id: uint;
+                }
+
+                namespace filter {
+                    type UserFilter {
+                        userFilter -> skip: uint, limit: uint
+                    }
+                }
+            }
+        `), [{
+            id: 3069954460,
+            doc: [],
+            name: 'user.user',
+            params: [{
+                doc: [],
+                genericType: 'uint',
+                name: 'id',
+                type: ParamEnum.GENERIC
+            }, {
+                doc: [],
+                name: 'posts',
+                type: ParamEnum.VECTOR,
+                vectorOf: 'user.Post'
+            }],
+            traits: [],
+            type: 'user.User'
+        }, {
+            doc: [],
+            id: 2800232608,
+            name: 'user.post',
+            params: [{
+                doc: [],
+                genericType: 'uint',
+                name: 'id',
+                type: ParamEnum.GENERIC
+            }],
+            traits: [],
+            type: 'user.Post'
+        }, {
+            id: 2984324565,
+            doc: [],
+            name: 'user.filter.userFilter',
+            params: [{
+                doc: [],
+                genericType: 'uint',
+                name: 'skip',
+                type: ParamEnum.GENERIC
+            }, {
+                doc: [],
+                genericType: 'uint',
+                name: 'limit',
+                type: ParamEnum.GENERIC
+            }],
+            traits: [],
+            type: 'user.filter.UserFilter'
+        }]);
+    });
+
     it('should support traits as a container type', function() {
         assert.deepEqual(schemaParser.parse(`
             trait Request;

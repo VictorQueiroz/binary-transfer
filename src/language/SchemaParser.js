@@ -80,7 +80,9 @@ class SchemaParser {
             });
 
             ast.body.forEach(node => {
-                const result = this.parseAst(node, nextContext);
+                const result = this.parseAst(node, Object.assign({}, nextContext, {
+                    parentContainers: []
+                }));
 
                 switch(node.type) {
                 case Syntax.GenericAlias:
@@ -123,7 +125,7 @@ class SchemaParser {
         case Syntax.TypeGroup: {
             const body = ast.body;
             const comments = this.collectComments(body);
-            const groupName = ctx.path.concat(this.parseAst(ast.name)).join('.');
+            const groupName = ctx.path.concat(this.parseAst(ast.name, ctx)).join('.');
             const containers = [];
             const traits = ast.traits.map(trait => this.parseAst(trait, ctx));
             const nextContext = Object.assign({}, ctx, {
@@ -184,10 +186,12 @@ class SchemaParser {
             let result = [];
 
             ctx.path.push(namespace);
-            ctx.parentContainers.splice(0, ctx.parentContainers.length);
+            // ctx.parentContainers.splice(0, ctx.parentContainers.length);
 
             for(let i = 0; i < ii; i++) {
-                const response = this.parseAst(body[i], ctx);
+                const response = this.parseAst(body[i], Object.assign({}, ctx, {
+                    path: []
+                }));
 
                 switch(body[i].type){
                     case Syntax.Namespace:
@@ -217,7 +221,6 @@ class SchemaParser {
             }
 
             ctx.path.pop();
-            ctx.parentContainers.splice(0, ctx.parentContainers.length);
 
             return result;
         }
@@ -329,24 +332,10 @@ class SchemaParser {
 
         for(let i = 0; i < ctx.parentContainers.length; i++){
             const container = ctx.parentContainers[i];
-            const strings = [
-                container.name.split('.'),
-                container.type.split('.')
-            ];
+            
+            if(container.name === type || container.type === type)
+                return ctx.path.concat([type]).join('.');
 
-            const namespaceMatch = strings.some(string => (
-                string.slice(0, path.length).join('.') === path.join('.')
-            ));
-
-            if(!namespaceMatch)
-                continue;
-
-            const matches = strings.some(string => (
-                string.slice(path.length).join('.') === type
-            ));
-
-            if(matches)
-                return path.concat(type).join('.');
         }
 
         return type;
@@ -378,12 +367,16 @@ class SchemaParser {
             result.type |= ParamEnum.OPTIONAL;
         }
         switch(ast.type) {
-        case Syntax.TypeIdentifier:
-            const type = this.parseAst(ast.namespace) + '.' + this.parseAst(ast.property);
+        case Syntax.TypeIdentifier: {
+            const type = [
+                this.parseAst(ast.namespace),
+                this.parseAst(ast.property)
+            ];
 
-            this.parseNonGenericProperty(type, result, ctx);
+            this.parseNonGenericProperty(type.join('.'), result, ctx);
             break;
-        case Syntax.Identifier:
+        }
+        case Syntax.Identifier: {
             let name = ast.name;
 
             if(this.aliases.hasOwnProperty(name)) {
@@ -400,12 +393,14 @@ class SchemaParser {
 
             this.parseNonGenericProperty(name, result, ctx);
             break;
-        case Syntax.Vector:
+        }
+        case Syntax.Vector: {
             const vectorOf = this.parseAst(ast.vectorType);
 
             result.type |= ParamEnum.VECTOR;
             result.vectorOf = this.getContainerType(vectorOf, ctx);
             break;
+        }
         default:
             throw new Error(`Invalid ast type -> ${ast.type}`);
         }
