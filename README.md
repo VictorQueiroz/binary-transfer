@@ -32,7 +32,7 @@ const buffer = schema.encode('account', {
     email: ''
 });
 
-assert.deepEqual(schema.decode({ bytes: buffer }), {
+assert.deepEqual(schema.decode(buffer), {
     _name: 'account',
     _type: 'Account',
     id: 3,
