@@ -8,19 +8,11 @@ Bool boolFalse;
 
 Post post -> id: uint, author: Account, body: string;
 
-players.Player players.player -> id: uint;
-
-players.Player players.playerFull -> id: uint, name: string;
-
-players.PlayersList players.playersList -> players: Vector<players.Player>;
-
-players.CreatePlayerResponse players.createPlayer -> online: Bool;
-
 Book book -> id: uint, author: players.player;
 
-userStatus : UserStatus -> online: bool;
+userStatus: UserStatus -> online: bool;
 
-user : User {
+user: User {
     id: uint;
     bio: string;
     posts: Vector<Post>;
@@ -31,32 +23,32 @@ user : User {
     downloadRegisters: Vector<DownloadRegister>;
 }
 
-session : Session {
+session: Session {
     location: GeoPoint;
 }
 
-geoPoint : GeoPoint {
+geoPoint: GeoPoint {
     latitude: double;
     longitude: double;
 }
 
-downloadRegister : DownloadRegister {
+downloadRegister: DownloadRegister {
     date: uint;
     location: GeoPoint;
 }
 
-msgEncrypted : Msg {
+msgEncrypted: Msg {
     data: bytes;
     authCode: bytes;
 }
 
-msg : Msg {
+msg: Msg {
     id: ulong;
 }
 
 alias ObjectId = bytes[12]
 alias ShortCharacters = string[8]
 
-comment : Comment -> id: ObjectId, description: ShortCharacters
+comment: Comment -> id: ObjectId, description: ShortCharacters
 
-postDeleted : Post -> comments: Vector<Comment>
+postDeleted: Post -> comments: Vector<Comment>

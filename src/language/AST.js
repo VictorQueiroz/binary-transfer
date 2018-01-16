@@ -248,7 +248,7 @@ class AST {
         let ctor,
             name;
 
-        name = this.typeIdentifier();
+        name = this.identifier();
 
         if(this.expect(':')) {
             ctor = name;
