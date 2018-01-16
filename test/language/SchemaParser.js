@@ -691,6 +691,36 @@ describe('SchemaParser', function() {
         }]);
     });
 
+    it('should transform multi line comments into a nice readable container comment', function() {
+        assert.deepEqual(schemaParser.parse(`
+            type User {
+                /**
+                 * Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce molestie 
+                 * congue nibh. Fusce ac enim semper, pellentesque est et, varius quam. 
+                 * Aliquam tortor felis, congue vulputate nibh ac, lacinia bibendum mauris. 
+                 * Ut tristique egestas mollis. Integer ac justo sit amet ligula iaculis 
+                 * viverra. Mauris euismod ac dui sed rhoncus. Suspendisse molestie tempus 
+                 * dapibus.
+                 */
+                user
+            }
+        `), [{
+            id: 2648436498,
+            doc: [
+                'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce molestie ',
+                'congue nibh. Fusce ac enim semper, pellentesque est et, varius quam. ',
+                'Aliquam tortor felis, congue vulputate nibh ac, lacinia bibendum mauris. ',
+                'Ut tristique egestas mollis. Integer ac justo sit amet ligula iaculis ',
+                'viverra. Mauris euismod ac dui sed rhoncus. Suspendisse molestie tempus ',
+                'dapibus.'
+            ],
+            name: 'user',
+            params: [],
+            traits: [],
+            type: 'User'
+        }]);
+    });
+
     it('should support another container requiring a previously defined container', function() {
         assert.deepEqual(schemaParser.parse(`
             namespace admin {
