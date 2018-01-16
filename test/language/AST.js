@@ -376,55 +376,58 @@ describe('AST', function() {
 
         it('should deal with namespaces', function() {
             const schema = ast.ast(`
-                users.User users.user;
-                Msg messages.message;
+                namespace users {
+                    type User {
+                        user
+                    }
+                }
+                namespace messages {
+                    message: Msg;
+                }
             `);
 
             deepEqual(schema, {
                 type: Syntax.Schema,
                 body: [{
-                    type: Syntax.TypeDeclaration,
-                    ctor: {
-                        type: Syntax.TypeIdentifier,
-                        property: {
-                            type: Syntax.Identifier,
-                            name: 'user'
-                        },
-                        namespace: {
-                            type: Syntax.Identifier,
-                            name: 'users'
-                        }
-                    },
+                    type: Syntax.Namespace,
                     name: {
-                        type: Syntax.TypeIdentifier,
-                        property: {
+                        type: Syntax.Identifier,
+                        name: 'users'
+                    },
+                    body: [{
+                        type: Syntax.TypeGroup,
+                        name: {
                             type: Syntax.Identifier,
                             name: 'User'
                         },
-                        namespace: {
-                            type: Syntax.Identifier,
-                            name: 'users'
-                        }
-                    },
-                    body: []
+                        body: [{
+                            type: Syntax.TypeGroupContainer,
+                            name: {
+                                type: Syntax.Identifier,
+                                name: 'user'
+                            },
+                            body: []
+                        }],
+                        traits: []
+                    }]
                 }, {
-                    type: Syntax.TypeDeclaration,
+                    type: Syntax.Namespace,
                     name: {
                         type: Syntax.Identifier,
-                        name: 'Msg'
+                        name: 'messages'
                     },
-                    ctor: {
-                        type: Syntax.TypeIdentifier,
-                        property: {
+                    body: [{
+                        type: Syntax.TypeDeclaration,
+                        name: {
+                            type: Syntax.Identifier,
+                            name: 'Msg'
+                        },
+                        ctor: {
                             type: Syntax.Identifier,
                             name: 'message'
                         },
-                        namespace: {
-                            type: Syntax.Identifier,
-                            name: 'messages'
-                        }
-                    },
-                    body: []
+                        body: []
+                    }]
                 }]
             });
         });

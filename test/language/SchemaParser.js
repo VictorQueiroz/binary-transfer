@@ -676,7 +676,13 @@ describe('SchemaParser', function() {
     });
 
     it('should parse namespaced constructors', function() {
-        assert.deepEqual(schemaParser.parse('user.User user.userRegular -> id: int;'), [{
+        assert.deepEqual(schemaParser.parse(`
+            namespace user {
+                type User {
+                    userRegular -> id: int
+                }
+            }
+        `), [{
             id: 2167712555,
             doc: [],
             type: 'user.User',
