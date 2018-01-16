@@ -28,18 +28,28 @@ class SchemaParser {
         return this.containers;
     }
 
-    shiftNextComment(ctx) {
-        let comment;
+    shiftNextComment({ comments } = {}) {
+        let comment = [];
 
-        if(ctx.hasOwnProperty('comments')) {
-            comment = ctx.comments.shift();
+        if(comments && comments.length) {
+            const group = comments.shift();
+            for(let i = 0; i < group.length; i++){
+                const list = [].concat(group[i]);
+
+                for(let j = 0; j < list.length; j++){
+                    if(list[j].trim() === '')
+                        list.splice(j, 1);
+                }
+
+                comment = comment.concat(list);
+            }
         }
 
-        return comment || [];
+        return comment;
     }
 
     collectComments(body) {
-        const comments = [];
+        let comments = [];
         const commentsGroup = [];
 
         function clearGroup() {
@@ -153,7 +163,7 @@ class SchemaParser {
         case Syntax.TypeGroupContainer: {
             const body = ast.body;
             const result = {
-                doc: this.shiftNextComment(ctx),
+                doc: [].concat(this.shiftNextComment(ctx)),
                 name: ctx.path.concat(this.parseAst(ast.name)).join('.'),
                 params: [],
                 traits: ctx.traits
@@ -229,7 +239,7 @@ class SchemaParser {
         case Syntax.TypeDeclaration: {
             const body = ast.body;
             const result = {
-                doc: this.shiftNextComment(ctx),
+                doc: [].concat(this.shiftNextComment(ctx)),
                 name: ctx.path.concat(this.parseAst(ast.ctor)).join('.'),
                 type: ctx.path.concat(this.parseAst(ast.name)).join('.'),
                 traits: [],
@@ -253,14 +263,16 @@ class SchemaParser {
             const result = {
                 name,
                 type: 0,
-                doc: this.shiftNextComment(ctx)
+                doc: [].concat(this.shiftNextComment(ctx))
             };
 
             this.parseParamType(ast.returnType, result, ast.optional, ctx);
             return result;
         }
         case Syntax.CommentBlock: {
-            return ast.lines.join('\n');
+            return ast.lines
+                    .map(s => s.replace(/((\ |\/)+\*(\ |\*|\/)|^\*$)/g, ''))
+                    .reduce((p, c) => p.concat([c]), []);
         }
         case Syntax.Literal:
             return ast.value;
