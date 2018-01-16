@@ -40,11 +40,11 @@ class SchemaParser {
 
     collectComments(body) {
         const comments = [];
-        const _comments = [];
+        const commentsGroup = [];
 
         function clearGroup() {
-            if(_comments.length > 0) {
-                comments.push(_comments.splice(0, _comments.length));
+            if(commentsGroup.length > 0) {
+                comments.push(commentsGroup.splice(0, commentsGroup.length));
             }
         }
 
@@ -54,7 +54,7 @@ class SchemaParser {
                 continue;
             }
 
-            _comments.push(this.parseAst(body[i]));
+            commentsGroup.push(this.parseAst(body[i]));
         }
 
         clearGroup();
