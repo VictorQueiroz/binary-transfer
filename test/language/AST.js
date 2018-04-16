@@ -31,7 +31,6 @@ describe('AST', function() {
                             type: Syntax.Identifier,
                             name: 'id'
                         },
-                        optional: false,
                         returnType: {
                             type: Syntax.Identifier,
                             name: 'uint'
