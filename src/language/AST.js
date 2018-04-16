@@ -220,7 +220,7 @@ class AST {
     }
 
     typeIdentifier() {
-        const primary = this.identifier();
+        let primary = this.identifier();    
 
         if(this.expect('[')) {
             const size = this.integer();
@@ -232,13 +232,14 @@ class AST {
                 name: primary,
                 type: Syntax.TypeSizeSpecification
             };
-        }
-        if(this.expect('.')) {
-            return {
-                type: Syntax.TypeIdentifier,
-                property: this.typeIdentifier(),
-                namespace: primary
-            };
+        } else {
+            while(this.expect('.')) {
+                primary = {
+                    type: Syntax.TypeIdentifier,
+                    property: this.identifier(),
+                    namespace: primary
+                };
+            }
         }
 
         return primary;

@@ -9,6 +9,38 @@ describe('AST', function() {
     });
 
     describe('ast()', function() {
+        it('should support referencing to namespaces', function() {
+            deepEqual(ast.ast('user: User -> id: uint, photo: encrypted.photo.Photo'), {
+                type: Syntax.Schema,
+                body: [{
+                    type: Syntax.TypeDeclaration,
+                    name: { type: Syntax.Identifier, name: 'User' },
+                    ctor: { type: Syntax.Identifier, name: 'user' },
+                    body: [{
+                        type: Syntax.TypeProperty,
+                        optional: false,
+                        key: { type: Syntax.Identifier, name: 'id' },
+                        returnType: { type: Syntax.Identifier, name: 'uint' }
+                    }, {
+                        type: Syntax.TypeProperty,
+                        optional: false,
+                        key: { type: Syntax.Identifier, name: 'photo' },
+                        returnType: {
+                            type: Syntax.TypeIdentifier,
+                            namespace: {
+                                type: Syntax.TypeIdentifier,
+                                property: { type: Syntax.Identifier, name: 'photo' },
+                                namespace: {
+                                    type: Syntax.Identifier,
+                                    name: 'encrypted'
+                                }
+                            },
+                            property: { type: Syntax.Identifier, name: 'Photo' }
+                        }
+                    }]
+                }]
+            });
+        });
         it('should support optional params', function() {
             const schema = ast.ast('user : User -> id: uint, photo?: Photo');
 
