@@ -1,4 +1,4 @@
-# binary-transfer
+# binary-transfer (This module is deprecated in order of [message-ff](https://www.npmjs.com/package/message-ff))
 
 Travel your data very fast using binary serialization.
 
